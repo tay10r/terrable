@@ -11,6 +11,10 @@ add_executable(terrable
   terrain.cpp
   terrain_view.hpp
   terrain_view.cpp
+  camera.hpp
+  camera.cpp
+  orbit_camera.hpp
+  orbit_camera.cpp
   resources.qrc)
 
 if(NOT MSVC)

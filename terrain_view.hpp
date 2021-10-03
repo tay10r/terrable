@@ -6,13 +6,17 @@
 #include <QOpenGLTexture>
 #include <QOpenGLWidget>
 
+class QMouseEvent;
+class QWheelEvent;
+
 class Terrain;
+class Camera;
 
 class TerrainView : public QOpenGLWidget
 {
   Q_OBJECT
 public:
-  TerrainView(QWidget* parent);
+  TerrainView(QWidget* parent, Camera& camera);
 
   void loadTerrain(Terrain&);
 
@@ -20,15 +24,21 @@ signals:
   void contextInitialized();
 
 protected:
-  void initializeGL();
+  void mouseMoveEvent(QMouseEvent*) override;
 
-  void paintGL();
+  void wheelEvent(QWheelEvent*) override;
 
-  void resizeGL(int, int);
+  void initializeGL() override;
+
+  void paintGL() override;
+
+  void resizeGL(int, int) override;
 
   QMatrix4x4 makeMVPMatrix() const;
 
 private:
+  Camera& m_camera;
+
   bool m_context_initialized = false;
 
   int m_terrain_vertex_count = 0;

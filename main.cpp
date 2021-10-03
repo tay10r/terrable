@@ -2,6 +2,7 @@
 #include <QMainWindow>
 #include <QVBoxLayout>
 
+#include "orbit_camera.hpp"
 #include "terrain.hpp"
 #include "terrain_view.hpp"
 
@@ -12,42 +13,24 @@ namespace {
 class MainWindow final : public QMainWindow
 {
 public:
-  MainWindow()
-  {
-    resize(1280, 720);
-
-    setCentralWidget(&m_central_widget);
-
-    m_central_widget.setLayout(&m_layout);
-
-    m_layout.addWidget(&m_terrain_view);
-  }
-
-  TerrainView* terrainView() { return &m_terrain_view; }
-
-private:
-  QWidget m_central_widget{ this };
-
-  QVBoxLayout m_layout{ &m_central_widget };
-
-  TerrainView m_terrain_view{ &m_central_widget };
+  MainWindow() { resize(1280, 720); }
 };
 
 class TerrainUpdater final : public QObject
 {
 public:
-  TerrainUpdater(TerrainView* terrain_view, Terrain* terrain)
+  TerrainUpdater(TerrainView& terrain_view, Terrain& terrain)
     : m_terrain_view(terrain_view)
     , m_terrain(terrain)
   {}
 
 public slots:
-  void update() { m_terrain_view->loadTerrain(*m_terrain); }
+  void update() { m_terrain_view.loadTerrain(m_terrain); }
 
 private:
-  TerrainView* m_terrain_view;
+  TerrainView& m_terrain_view;
 
-  Terrain* m_terrain;
+  Terrain& m_terrain;
 };
 
 } // namespace
@@ -67,12 +50,27 @@ main(int argc, char** argv)
 
   main_window.show();
 
-  TerrainView* terrain_view = main_window.terrainView();
+  OrbitCamera orbit_camera;
 
-  TerrainUpdater terrain_updater(terrain_view, &terrain);
+  TerrainView terrain_view(&main_window, orbit_camera);
+
+  QObject::connect(
+    &app, &QApplication::focusChanged, [&terrain_view, &orbit_camera](QWidget* old, QWidget* now) {
+      if (now == &terrain_view)
+        orbit_camera.gotFocus();
+      else if (old == &terrain_view)
+        orbit_camera.lostFocus();
+    });
+
+  QObject::connect(
+    &orbit_camera, &OrbitCamera::cameraUpdate, [&terrain_view]() { terrain_view.update(); });
+
+  main_window.setCentralWidget(&terrain_view);
+
+  TerrainUpdater terrain_updater(terrain_view, terrain);
 
   success = QObject::connect(
-    terrain_view, &TerrainView::contextInitialized, &terrain_updater, &TerrainUpdater::update);
+    &terrain_view, &TerrainView::contextInitialized, &terrain_updater, &TerrainUpdater::update);
 
   assert(success);
 

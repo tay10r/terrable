@@ -1,5 +1,6 @@
 #include "terrain_view.hpp"
 
+#include "camera.hpp"
 #include "terrain.hpp"
 
 #include <QOpenGLContext>
@@ -10,11 +11,16 @@
 
 #include <cassert>
 
-TerrainView::TerrainView(QWidget* parent)
+TerrainView::TerrainView(QWidget* parent, Camera& camera)
   : QOpenGLWidget(parent)
+  , m_camera(camera)
   , m_terrain_color_texture(QOpenGLTexture::Target2D)
 {
   m_view_matrix.lookAt(QVector3D(2, 2, 3), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+
+  setFocusPolicy(Qt::StrongFocus);
+
+  setMouseTracking(true);
 }
 
 void
@@ -70,6 +76,10 @@ TerrainView::loadTerrain(Terrain& terrain)
 void
 TerrainView::initializeGL()
 {
+  QOpenGLFunctions* functions = context()->functions();
+
+  functions->glEnable(GL_DEPTH_TEST);
+
   // Compile shader
 
   bool success = m_render_terrain_program.addShaderFromSourceFile(QOpenGLShader::Vertex,
@@ -87,8 +97,6 @@ TerrainView::initializeGL()
   assert(success);
 
   // Create color texture
-
-  QOpenGLFunctions* functions = context()->functions();
 
   functions->glActiveTexture(GL_TEXTURE0);
 
@@ -197,6 +205,22 @@ TerrainView::resizeGL(int w, int h)
   m_aspect_ratio = float(w) / h;
 }
 
+void
+TerrainView::mouseMoveEvent(QMouseEvent* event)
+{
+  m_camera.mouseMoveEvent(event);
+
+  QOpenGLWidget::mouseMoveEvent(event);
+}
+
+void
+TerrainView::wheelEvent(QWheelEvent* event)
+{
+  m_camera.wheelEvent(event);
+
+  QOpenGLWidget::wheelEvent(event);
+}
+
 QMatrix4x4
 TerrainView::makeMVPMatrix() const
 {
@@ -206,5 +230,5 @@ TerrainView::makeMVPMatrix() const
 
   QMatrix4x4 model_matrix;
 
-  return projection_matrix * m_view_matrix * model_matrix;
+  return projection_matrix * m_camera.viewMatrix() * model_matrix;
 }
