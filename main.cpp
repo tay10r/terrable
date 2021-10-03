@@ -5,15 +5,20 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 
+#include "core/terrain.hpp"
+
 #include "orbit_camera.hpp"
-#include "terrain.hpp"
 #include "terrain_history.hpp"
 #include "terrain_view.hpp"
 #include "tool_list.hpp"
 
-#include "scale_tool.hpp"
-
 #include <cassert>
+
+#ifndef NDEBUG
+#define INIT_TERRAIN_PATH ":/images/init_terrain_low_resolution.png"
+#else
+#define INIT_TERRAIN_PATH ":/images/init_terrain.png"
+#endif
 
 namespace {
 
@@ -39,7 +44,7 @@ public slots:
   void initializeTerrain()
   {
     auto modifier = [](Terrain& terrain) -> bool {
-      const bool success = terrain.openFromHeightMap(":/init_terrain.png");
+      [[maybe_unused]] const bool success = terrain.openFromHeightMap(INIT_TERRAIN_PATH);
 
       assert(success);
 
@@ -107,10 +112,10 @@ main(int argc, char** argv)
 
   TerrainInitializer terrain_initializer(terrain_history);
 
-  bool success = QObject::connect(&terrain_view,
-                                  &TerrainView::contextInitialized,
-                                  &terrain_initializer,
-                                  &TerrainInitializer::initializeTerrain);
+  [[maybe_unused]] bool success = QObject::connect(&terrain_view,
+                                                   &TerrainView::contextInitialized,
+                                                   &terrain_initializer,
+                                                   &TerrainInitializer::initializeTerrain);
 
   assert(success);
 

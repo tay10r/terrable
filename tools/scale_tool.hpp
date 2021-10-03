@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tool.hpp"
+#include "core/tool.hpp"
 
 #include <QDoubleSpinBox>
 #include <QPushButton>

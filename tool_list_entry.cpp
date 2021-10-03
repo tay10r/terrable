@@ -1,6 +1,6 @@
 #include "tool_list_entry.hpp"
 
-#include "tool.hpp"
+#include "core/tool.hpp"
 
 #include <cassert>
 

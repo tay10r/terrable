@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file>init_terrain.png</file>
+    <file>images/init_terrain.png</file>
+    <file>images/init_terrain_low_resolution.png</file>
     <file>stylesheet.css</file>
     <file>shaders/render_terrain.vert</file>
     <file>shaders/render_terrain.frag</file>

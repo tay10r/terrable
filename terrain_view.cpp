@@ -1,7 +1,7 @@
 #include "terrain_view.hpp"
 
-#include "camera.hpp"
-#include "terrain.hpp"
+#include "core/camera.hpp"
+#include "core/terrain.hpp"
 
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
@@ -37,7 +37,7 @@ TerrainView::loadTerrain(Terrain& terrain)
 
   // Setup vertex buffer
 
-  bool success = m_terrain_vertex_buffer.bind();
+  [[maybe_unused]] bool success = m_terrain_vertex_buffer.bind();
 
   assert(success);
 
@@ -85,8 +85,8 @@ TerrainView::initializeGL()
 
   // Compile shader
 
-  bool success = m_render_terrain_program.addShaderFromSourceFile(QOpenGLShader::Vertex,
-                                                                  ":/shaders/render_terrain.vert");
+  [[maybe_unused]] bool success = m_render_terrain_program.addShaderFromSourceFile(
+    QOpenGLShader::Vertex, ":/shaders/render_terrain.vert");
 
   assert(success);
 

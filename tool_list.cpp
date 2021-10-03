@@ -1,10 +1,12 @@
 #include "tool_list.hpp"
 
-#include "tool.hpp"
+#include "core/tool.hpp"
+
 #include "tool_list_entry.hpp"
 
-#include "height_map_import_tool.hpp"
-#include "scale_tool.hpp"
+#include "tools/ambient_occlusion_tool.hpp"
+#include "tools/height_map_import_tool.hpp"
+#include "tools/scale_tool.hpp"
 
 ToolList::ToolList(QWidget* parent)
   : QWidget(parent)
@@ -14,6 +16,8 @@ ToolList::ToolList(QWidget* parent)
   m_root_layout.addWidget(&m_list);
 
   m_list_layout.addStretch();
+
+  addTool(tr("Ambient Occlusion"), new AmbientOcclusionTool(&m_list));
 
   addTool(tr("Scale"), new ScaleTool(&m_list));
 

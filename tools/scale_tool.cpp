@@ -1,6 +1,6 @@
 #include "scale_tool.hpp"
 
-#include "terrain.hpp"
+#include "core/terrain.hpp"
 
 #include <QMatrix4x4>
 

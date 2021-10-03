@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/texture.hpp"
+
 #include <QVector2D>
 #include <QVector3D>
 
@@ -16,15 +18,6 @@ class Terrain final
 {
 public:
   using Size = std::int64_t;
-
-  struct Texture final
-  {
-    std::vector<QVector3D> color;
-
-    Size width = 0;
-
-    Size height = 0;
-  };
 
   struct Vertex final
   {
@@ -50,6 +43,10 @@ public:
   Size vertexCount() const noexcept;
 
   const QVector3D* currentTextureData();
+
+  void defineTexture(const std::string& name, Texture&& texture);
+
+  void setCurrentTexture(const std::string& name);
 
 private:
   Texture* currentTexture();

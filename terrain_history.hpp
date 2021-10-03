@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include "terrain.hpp"
+#include "core/terrain.hpp"
 
 #include <memory>
 #include <vector>

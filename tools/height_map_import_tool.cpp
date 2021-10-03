@@ -1,6 +1,6 @@
 #include "height_map_import_tool.hpp"
 
-#include "terrain.hpp"
+#include "core/terrain.hpp"
 
 #include <QFileDialog>
 

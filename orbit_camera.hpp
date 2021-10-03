@@ -1,6 +1,6 @@
 #pragma once
 
-#include "camera.hpp"
+#include "core/camera.hpp"
 
 #include <QTimer>
 #include <QVector2D>

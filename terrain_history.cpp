@@ -1,6 +1,6 @@
 #include "terrain_history.hpp"
 
-#include "tool.hpp"
+#include "core/tool.hpp"
 
 TerrainHistory::TerrainHistory()
 {

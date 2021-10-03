@@ -164,6 +164,8 @@ Terrain::openFromHeightMap(const QString& path)
 
   resize(vertex_generator.columns(), vertex_generator.rows());
 
+#pragma omp parallel for
+
   for (Size i = 0; i < (vertex_generator.columns() * vertex_generator.rows()); i++) {
 
     const Size x = i % vertex_generator.columns();
@@ -188,6 +190,12 @@ Terrain::openFromHeightMap(const QString& path)
   return true;
 }
 
+void
+Terrain::defineTexture(const std::string& name, Texture&& texture)
+{
+  m_texture_map.emplace(name, std::move(texture));
+}
+
 Terrain::Vertex*
 Terrain::vertexData() noexcept
 {
@@ -206,17 +214,23 @@ Terrain::vertexCount() const noexcept
   return m_vertex_buffer.size();
 }
 
+void
+Terrain::setCurrentTexture(const std::string& name)
+{
+  m_current_texture = name;
+}
+
 const QVector3D*
 Terrain::currentTextureData()
 {
   Texture* current_texture = currentTexture();
   if (!current_texture)
-    return createElevationTexture()->color.data();
+    return createElevationTexture()->data();
   else
-    return current_texture->color.data();
+    return current_texture->data();
 }
 
-Terrain::Texture*
+Texture*
 Terrain::currentTexture()
 {
   if (m_current_texture.empty())
@@ -229,12 +243,12 @@ Terrain::currentTexture()
   return &it->second;
 }
 
-Terrain::Texture*
+Texture*
 Terrain::createElevationTexture()
 {
   Texture texture;
 
-  texture.color.resize(columns() * rows());
+  texture.resize(columns(), rows());
 
   float min_height = m_vertex_buffer[0].position[1];
   float max_height = m_vertex_buffer[0].position[1];
@@ -252,7 +266,7 @@ Terrain::createElevationTexture()
 
     const float color = (m_vertex_buffer[i * 6].position[1] - min_height) * scale;
 
-    texture.color[i] = QVector3D(color, color, color);
+    texture[i] = QVector3D(color, color, color);
   }
 
   return &m_texture_map.emplace("Elevation", std::move(texture)).first->second;
