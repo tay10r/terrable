@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QObject>
 #include <QVector2D>
 #include <QVector3D>
 
@@ -11,9 +10,10 @@
 
 #include <cstdint>
 
-class Terrain final : public QObject
+class QString;
+
+class Terrain final
 {
-  Q_OBJECT
 public:
   using Size = std::int64_t;
 
@@ -41,7 +41,9 @@ public:
 
   Size rows() const noexcept { return m_height; }
 
-  bool openFromHeightMap(const char* path);
+  bool openFromHeightMap(const QString& path);
+
+  Vertex* vertexData() noexcept;
 
   const Vertex* vertexData() const noexcept;
 
@@ -50,12 +52,14 @@ public:
   const QVector3D* currentTextureData();
 
 private:
+  Texture* currentTexture();
+
   Texture* createElevationTexture();
 
 private:
-  std::map<std::string, std::shared_ptr<Texture>> m_texture_map;
+  std::map<std::string, Texture> m_texture_map;
 
-  std::shared_ptr<Texture> m_current_texture;
+  std::string m_current_texture;
 
   std::vector<Vertex> m_vertex_buffer;
 

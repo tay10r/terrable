@@ -1,10 +1,17 @@
 #include <QApplication>
+#include <QFile>
 #include <QMainWindow>
+#include <QSplitter>
+#include <QToolBar>
 #include <QVBoxLayout>
 
 #include "orbit_camera.hpp"
 #include "terrain.hpp"
+#include "terrain_history.hpp"
 #include "terrain_view.hpp"
+#include "tool_list.hpp"
+
+#include "scale_tool.hpp"
 
 #include <cassert>
 
@@ -13,24 +20,37 @@ namespace {
 class MainWindow final : public QMainWindow
 {
 public:
-  MainWindow() { resize(1280, 720); }
+  MainWindow()
+  {
+    resize(1280, 720);
+
+    setWindowTitle("Terrable");
+  }
 };
 
-class TerrainUpdater final : public QObject
+class TerrainInitializer final : public QObject
 {
 public:
-  TerrainUpdater(TerrainView& terrain_view, Terrain& terrain)
-    : m_terrain_view(terrain_view)
-    , m_terrain(terrain)
+  TerrainInitializer(TerrainHistory& terrain_history)
+    : m_terrain_history(terrain_history)
   {}
 
 public slots:
-  void update() { m_terrain_view.loadTerrain(m_terrain); }
+  void initializeTerrain()
+  {
+    auto modifier = [](Terrain& terrain) -> bool {
+      const bool success = terrain.openFromHeightMap(":/init_terrain.png");
+
+      assert(success);
+
+      return true;
+    };
+
+    m_terrain_history.applyModifier(modifier);
+  }
 
 private:
-  TerrainView& m_terrain_view;
-
-  Terrain& m_terrain;
+  TerrainHistory& m_terrain_history;
 };
 
 } // namespace
@@ -40,19 +60,29 @@ main(int argc, char** argv)
 {
   QApplication app(argc, argv);
 
+  QFile file(":/stylesheet.css");
+
+  file.open(QFile::ReadOnly);
+
+  QString styleSheet(QLatin1String(file.readAll()));
+
+  app.setStyleSheet(styleSheet);
+
   MainWindow main_window;
 
-  Terrain terrain;
-
-  bool success = terrain.openFromHeightMap(":/init_terrain.png");
-
-  assert(success);
+  TerrainHistory terrain_history;
 
   main_window.show();
 
+  QSplitter splitter(&main_window);
+
+  main_window.setCentralWidget(&splitter);
+
   OrbitCamera orbit_camera;
 
-  TerrainView terrain_view(&main_window, orbit_camera);
+  TerrainView terrain_view(&splitter, orbit_camera);
+
+  splitter.addWidget(&terrain_view);
 
   QObject::connect(
     &app, &QApplication::focusChanged, [&terrain_view, &orbit_camera](QWidget* old, QWidget* now) {
@@ -65,14 +95,26 @@ main(int argc, char** argv)
   QObject::connect(
     &orbit_camera, &OrbitCamera::cameraUpdate, [&terrain_view]() { terrain_view.update(); });
 
-  main_window.setCentralWidget(&terrain_view);
+  ToolList tool_list(&splitter);
 
-  TerrainUpdater terrain_updater(terrain_view, terrain);
+  splitter.addWidget(&tool_list);
 
-  success = QObject::connect(
-    &terrain_view, &TerrainView::contextInitialized, &terrain_updater, &TerrainUpdater::update);
+  QObject::connect(
+    &tool_list, &ToolList::toolApplied, &terrain_history, &TerrainHistory::applyTool);
+
+  QObject::connect(
+    &terrain_history, &TerrainHistory::terrainChanged, &terrain_view, &TerrainView::loadTerrain);
+
+  TerrainInitializer terrain_initializer(terrain_history);
+
+  bool success = QObject::connect(&terrain_view,
+                                  &TerrainView::contextInitialized,
+                                  &terrain_initializer,
+                                  &TerrainInitializer::initializeTerrain);
 
   assert(success);
+
+  splitter.setSizes({ 80, 20 });
 
   return app.exec();
 }

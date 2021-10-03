@@ -5,6 +5,7 @@
 
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
+#include <QSizePolicy>
 #include <QTimer>
 
 #include <QDebug>
@@ -17,6 +18,8 @@ TerrainView::TerrainView(QWidget* parent, Camera& camera)
   , m_terrain_color_texture(QOpenGLTexture::Target2D)
 {
   m_view_matrix.lookAt(QVector3D(2, 2, 3), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   setFocusPolicy(Qt::StrongFocus);
 

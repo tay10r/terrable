@@ -91,7 +91,7 @@ Terrain::clear()
 
   m_texture_map.clear();
 
-  m_current_texture.reset();
+  m_current_texture.clear();
 }
 
 void
@@ -134,7 +134,7 @@ Terrain::resize(Size w, Size h)
 }
 
 bool
-Terrain::openFromHeightMap(const char* path)
+Terrain::openFromHeightMap(const QString& path)
 {
   QImage image;
 
@@ -188,6 +188,12 @@ Terrain::openFromHeightMap(const char* path)
   return true;
 }
 
+Terrain::Vertex*
+Terrain::vertexData() noexcept
+{
+  return &m_vertex_buffer[0];
+}
+
 const Terrain::Vertex*
 Terrain::vertexData() const noexcept
 {
@@ -203,24 +209,32 @@ Terrain::vertexCount() const noexcept
 const QVector3D*
 Terrain::currentTextureData()
 {
-  if (!m_current_texture) {
-    if (m_texture_map.empty())
-      return createElevationTexture()->color.data();
-    else
-      return m_texture_map.begin()->second->color.data();
-  } else {
-    return m_current_texture->color.data();
-  }
+  Texture* current_texture = currentTexture();
+  if (!current_texture)
+    return createElevationTexture()->color.data();
+  else
+    return current_texture->color.data();
+}
+
+Terrain::Texture*
+Terrain::currentTexture()
+{
+  if (m_current_texture.empty())
+    return nullptr;
+
+  auto it = m_texture_map.find(m_current_texture);
+  if (it == m_texture_map.end())
+    return nullptr;
+
+  return &it->second;
 }
 
 Terrain::Texture*
 Terrain::createElevationTexture()
 {
-  std::shared_ptr<Texture> texture(new Texture);
+  Texture texture;
 
-  texture->color.resize(columns() * rows());
-
-  m_texture_map.emplace("elevation", texture);
+  texture.color.resize(columns() * rows());
 
   float min_height = m_vertex_buffer[0].position[1];
   float max_height = m_vertex_buffer[0].position[1];
@@ -238,8 +252,8 @@ Terrain::createElevationTexture()
 
     const float color = (m_vertex_buffer[i * 6].position[1] - min_height) * scale;
 
-    texture->color[i] = QVector3D(color, color, color);
+    texture.color[i] = QVector3D(color, color, color);
   }
 
-  return texture.get();
+  return &m_texture_map.emplace("Elevation", std::move(texture)).first->second;
 }
