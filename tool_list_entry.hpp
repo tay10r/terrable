@@ -7,6 +7,13 @@
 class Tool;
 class QString;
 
+class ToolListEntryHeader : public QPushButton
+{
+  Q_OBJECT
+public:
+  ToolListEntryHeader(const QString& name, QWidget* parent);
+};
+
 class ToolListEntry final : public QFrame
 {
   Q_OBJECT
@@ -26,7 +33,7 @@ private:
 private:
   QVBoxLayout m_layout{ this };
 
-  QPushButton m_label{ this };
+  ToolListEntryHeader m_label;
 
   QPushButton m_apply_button{ QObject::tr("Apply"), this };
 

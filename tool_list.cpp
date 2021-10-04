@@ -5,6 +5,7 @@
 #include "tool_list_entry.hpp"
 
 #include "tools/ambient_occlusion_tool.hpp"
+#include "tools/erosion_tool.hpp"
 #include "tools/height_map_import_tool.hpp"
 #include "tools/scale_tool.hpp"
 
@@ -18,6 +19,8 @@ ToolList::ToolList(QWidget* parent)
   m_list_layout.addStretch();
 
   addTool(tr("Ambient Occlusion"), new AmbientOcclusionTool(&m_list));
+
+  addTool(tr("Erosion"), new ErosionTool(&m_list));
 
   addTool(tr("Scale"), new ScaleTool(&m_list));
 

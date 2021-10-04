@@ -3,6 +3,10 @@ QWidget {
   color: white
 }
 
+ToolListEntryHeader {
+  color: violet
+}
+
 ToolListEntry {
   background-color: #181818;
   border-style: none;

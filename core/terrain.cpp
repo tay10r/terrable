@@ -133,6 +133,46 @@ Terrain::resize(Size w, Size h)
   }
 }
 
+std::vector<float>
+Terrain::getElevation() const
+{
+  std::vector<float> elevation(rows() * columns());
+
+  for (Size i = 0; i < (rows() * columns()); i++)
+    elevation[i] = m_vertex_buffer[i * 6].position[1];
+
+  return elevation;
+}
+
+void
+Terrain::setElevation(const std::vector<float>& elevation)
+{
+  VertexGenerator vertex_generator(elevation, rows(), columns());
+
+#pragma omp parallel for
+
+  for (Size i = 0; i < (vertex_generator.columns() * vertex_generator.rows()); i++) {
+
+    const Size x = i % vertex_generator.columns();
+    const Size y = i / vertex_generator.columns();
+
+    const QVector3D p00 = vertex_generator.positionAt(x + 0, y + 0);
+    const QVector3D p01 = vertex_generator.positionAt(x + 0, y + 1);
+    const QVector3D p10 = vertex_generator.positionAt(x + 1, y + 0);
+    const QVector3D p11 = vertex_generator.positionAt(x + 1, y + 1);
+
+    const Size vertexOffset = i * 6;
+
+    m_vertex_buffer[vertexOffset + 0].position[1] = p00[1];
+    m_vertex_buffer[vertexOffset + 1].position[1] = p01[1];
+    m_vertex_buffer[vertexOffset + 2].position[1] = p11[1];
+
+    m_vertex_buffer[vertexOffset + 3].position[1] = p11[1];
+    m_vertex_buffer[vertexOffset + 4].position[1] = p10[1];
+    m_vertex_buffer[vertexOffset + 5].position[1] = p00[1];
+  }
+}
+
 bool
 Terrain::openFromHeightMap(const QString& path)
 {

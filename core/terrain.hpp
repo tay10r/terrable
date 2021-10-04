@@ -34,6 +34,10 @@ public:
 
   Size rows() const noexcept { return m_height; }
 
+  std::vector<float> getElevation() const;
+
+  void setElevation(const std::vector<float>& elevation);
+
   bool openFromHeightMap(const QString& path);
 
   Vertex* vertexData() noexcept;
@@ -43,6 +47,8 @@ public:
   Size vertexCount() const noexcept;
 
   const QVector3D* currentTextureData();
+
+  const Texture* getElevationTexture();
 
   void defineTexture(const std::string& name, Texture&& texture);
 

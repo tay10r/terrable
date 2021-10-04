@@ -4,9 +4,13 @@
 
 #include <cassert>
 
+ToolListEntryHeader::ToolListEntryHeader(const QString& name, QWidget* parent)
+  : QPushButton(name, parent)
+{}
+
 ToolListEntry::ToolListEntry(QWidget* parent, const QString& name)
   : QFrame(parent)
-  , m_label(name)
+  , m_label(name, this)
 {
 #if 0
   m_apply_button.setFlat(true);

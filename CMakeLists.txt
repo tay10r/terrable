@@ -11,9 +11,15 @@ FetchContent_Declare(bvh URL "https://github.com/madmann91/bvh/archive/master.zi
 
 FetchContent_MakeAvailable(bvh)
 
+FetchContent_Declare(tinyerode URL "https://github.com/tay10r/TinyErode/archive/main.zip")
+
+FetchContent_MakeAvailable(tinyerode)
+
 set(tools
   tools/ambient_occlusion_tool.hpp
   tools/ambient_occlusion_tool.cpp
+  tools/erosion_tool.hpp
+  tools/erosion_tool.cpp
   tools/height_map_import_tool.hpp
   tools/height_map_import_tool.cpp
   tools/scale_tool.hpp
@@ -63,4 +69,5 @@ target_link_libraries(terrable
   PRIVATE
     Qt5::Widgets
     OpenMP::OpenMP_CXX
-    bvh)
+    bvh
+    TinyErode::TinyErode)
