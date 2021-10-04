@@ -2,12 +2,12 @@
 #include <QFile>
 #include <QMainWindow>
 #include <QSplitter>
+#include <QSurfaceFormat>
 #include <QToolBar>
 #include <QVBoxLayout>
 
 #include "core/terrain.hpp"
 
-#include "orbit_camera.hpp"
 #include "terrain_history.hpp"
 #include "terrain_view.hpp"
 #include "tool_list.hpp"
@@ -63,6 +63,10 @@ private:
 int
 main(int argc, char** argv)
 {
+  QSurfaceFormat surface_format = QSurfaceFormat::defaultFormat();
+  surface_format.setSamples(4);
+  QSurfaceFormat::setDefaultFormat(surface_format);
+
   QApplication app(argc, argv);
 
   QFile file(":/stylesheet.css");
@@ -83,22 +87,14 @@ main(int argc, char** argv)
 
   main_window.setCentralWidget(&splitter);
 
-  OrbitCamera orbit_camera;
+  TerrainViewContainer terrain_view_container(&splitter);
 
-  TerrainView terrain_view(&splitter, orbit_camera);
+  splitter.addWidget(&terrain_view_container);
 
-  splitter.addWidget(&terrain_view);
-
-  QObject::connect(
-    &app, &QApplication::focusChanged, [&terrain_view, &orbit_camera](QWidget* old, QWidget* now) {
-      if (now == &terrain_view)
-        orbit_camera.gotFocus();
-      else if (old == &terrain_view)
-        orbit_camera.lostFocus();
-    });
-
-  QObject::connect(
-    &orbit_camera, &OrbitCamera::cameraUpdate, [&terrain_view]() { terrain_view.update(); });
+  QObject::connect(&app,
+                   &QApplication::focusChanged,
+                   &terrain_view_container,
+                   &TerrainViewContainer::onFocusChange);
 
   ToolList tool_list(&splitter);
 
@@ -107,13 +103,15 @@ main(int argc, char** argv)
   QObject::connect(
     &tool_list, &ToolList::toolApplied, &terrain_history, &TerrainHistory::applyTool);
 
-  QObject::connect(
-    &terrain_history, &TerrainHistory::terrainChanged, &terrain_view, &TerrainView::loadTerrain);
+  QObject::connect(&terrain_history,
+                   &TerrainHistory::terrainChanged,
+                   &terrain_view_container,
+                   &TerrainViewContainer::terrainUpdate);
 
   TerrainInitializer terrain_initializer(terrain_history);
 
-  [[maybe_unused]] bool success = QObject::connect(&terrain_view,
-                                                   &TerrainView::contextInitialized,
+  [[maybe_unused]] bool success = QObject::connect(&terrain_view_container,
+                                                   &TerrainViewContainer::contextInitialized,
                                                    &terrain_initializer,
                                                    &TerrainInitializer::initializeTerrain);
 

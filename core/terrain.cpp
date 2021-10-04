@@ -1,6 +1,8 @@
 #include "terrain.hpp"
 
 #include <QImage>
+#include <QString>
+#include <QStringList>
 
 #include <algorithm>
 #include <limits>
@@ -79,6 +81,24 @@ private:
 };
 
 } // namespace
+
+QStringList
+Terrain::getTextureList() const
+{
+  QStringList list;
+
+  for (const auto& texture : m_texture_map) {
+    list << QString::fromStdString(texture.first);
+  }
+
+  return list;
+}
+
+QString
+Terrain::getCurrentTextureName() const
+{
+  return QString::fromStdString(m_current_texture);
+}
 
 void
 Terrain::clear()

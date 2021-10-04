@@ -22,9 +22,6 @@ public:
 
   QMatrix4x4 viewMatrix() const override;
 
-signals:
-  void cameraUpdate();
-
 protected:
   void onTimeout();
 

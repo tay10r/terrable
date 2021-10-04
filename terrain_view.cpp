@@ -1,6 +1,7 @@
 #include "terrain_view.hpp"
 
-#include "core/camera.hpp"
+#include "orbit_camera.hpp"
+
 #include "core/terrain.hpp"
 
 #include <QOpenGLContext>
@@ -11,6 +12,32 @@
 #include <QDebug>
 
 #include <cassert>
+
+//===================//
+// TerrainViewHeader //
+//===================//
+
+TerrainViewHeader::TerrainViewHeader(QWidget* parent)
+  : QFrame(parent)
+{
+  m_layout.addWidget(&m_texture_selection_label);
+
+  m_layout.addWidget(&m_texture_selection);
+}
+
+void
+TerrainViewHeader::updateTextureOptions(const Terrain& terrain)
+{
+  m_texture_selection.clear();
+
+  m_texture_selection.addItems(terrain.getTextureList());
+
+  m_texture_selection.setCurrentText(terrain.getCurrentTextureName());
+}
+
+//=============//
+// TerrainView //
+//=============//
 
 TerrainView::TerrainView(QWidget* parent, Camera& camera)
   : QOpenGLWidget(parent)
@@ -80,6 +107,8 @@ void
 TerrainView::initializeGL()
 {
   QOpenGLFunctions* functions = context()->functions();
+
+  functions->glEnable(GL_MULTISAMPLE);
 
   functions->glEnable(GL_DEPTH_TEST);
 
@@ -234,4 +263,51 @@ TerrainView::makeMVPMatrix() const
   QMatrix4x4 model_matrix;
 
   return projection_matrix * m_camera.viewMatrix() * model_matrix;
+}
+
+//======================//
+// TerrainViewContainer //
+//======================//
+
+TerrainViewContainer::TerrainViewContainer(QWidget* parent)
+  : QFrame(parent)
+{
+  m_layout.addWidget(&m_terrain_view_header);
+
+  m_layout.addWidget(&m_terrain_view);
+
+  connect(&m_terrain_view,
+          &TerrainView::contextInitialized,
+          this,
+          &TerrainViewContainer::contextInitialized);
+
+  connect(&m_terrain_view_header,
+          &TerrainViewHeader::textureSelectionChanged,
+          this,
+          &TerrainViewContainer::textureSelectionChanged);
+
+  connect(m_camera.get(), &Camera::cameraUpdate, [this]() { m_terrain_view.update(); });
+}
+
+void
+TerrainViewContainer::onFocusChange(QWidget* old, QWidget* now)
+{
+  if (now == &m_terrain_view)
+    m_camera->gotFocus();
+  else if (old == &m_terrain_view)
+    m_camera->lostFocus();
+}
+
+std::unique_ptr<Camera>
+TerrainViewContainer::createDefaultCamera(QObject* parent)
+{
+  return std::unique_ptr<Camera>(new OrbitCamera(parent));
+}
+
+void
+TerrainViewContainer::terrainUpdate(Terrain& terrain)
+{
+  m_terrain_view_header.updateTextureOptions(terrain);
+
+  m_terrain_view.loadTerrain(terrain);
 }

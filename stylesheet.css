@@ -3,18 +3,14 @@ QWidget {
   color: white
 }
 
-ToolListEntryHeader {
-  color: violet
-}
-
 ToolListEntry {
   background-color: #181818;
   border-style: none;
-  border-radius: 8px
+  border-radius: 8px;
+  padding: 0px;
 }
 
 Tool {
-  background-color: #202020
 }
 
 QDoubleSpinBox {
@@ -26,9 +22,19 @@ QPushButton {
   border-style: none;
   border-radius: 8px;
   padding: 5px;
-  color: orange
+  color: orange;
 }
 
 QPushButton:hover {
-  background-color: #333333
+  background-color: #282828
+}
+
+ApplyButton {
+  color: white;
+  background-color: #304830
+}
+
+ApplyButton:hover {
+  color: white;
+  background-color: #406840
 }

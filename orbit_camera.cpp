@@ -6,7 +6,7 @@ OrbitCamera::OrbitCamera(QObject* parent)
   : Camera(parent)
   , m_move_timer(this)
 {
-  m_move_timer.setInterval(50);
+  m_move_timer.setInterval(33);
 
   connect(&m_move_timer, &QTimer::timeout, this, &OrbitCamera::onTimeout);
 }

@@ -13,6 +13,7 @@
 #include <cstdint>
 
 class QString;
+class QStringList;
 
 class Terrain final
 {
@@ -53,6 +54,10 @@ public:
   void defineTexture(const std::string& name, Texture&& texture);
 
   void setCurrentTexture(const std::string& name);
+
+  QString getCurrentTextureName() const;
+
+  QStringList getTextureList() const;
 
 private:
   Texture* currentTexture();

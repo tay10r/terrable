@@ -8,6 +8,7 @@ class QWheelEvent;
 
 class Camera : public QObject
 {
+  Q_OBJECT
 public:
   Camera(QObject* parent);
 
@@ -22,4 +23,7 @@ public:
   virtual void wheelEvent(QWheelEvent*) = 0;
 
   virtual QMatrix4x4 viewMatrix() const = 0;
+
+signals:
+  void cameraUpdate();
 };

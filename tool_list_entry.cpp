@@ -8,15 +8,15 @@ ToolListEntryHeader::ToolListEntryHeader(const QString& name, QWidget* parent)
   : QPushButton(name, parent)
 {}
 
+ApplyButton::ApplyButton(const QString& name, QWidget* parent)
+  : QPushButton(name, parent)
+{}
+
 ToolListEntry::ToolListEntry(QWidget* parent, const QString& name)
   : QFrame(parent)
   , m_label(name, this)
 {
-#if 0
-  m_apply_button.setFlat(true);
-
-  m_label.setFlat(true);
-#endif
+  m_layout.setMargin(0);
 
   m_layout.addWidget(&m_label);
 

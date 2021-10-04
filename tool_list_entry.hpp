@@ -14,6 +14,13 @@ public:
   ToolListEntryHeader(const QString& name, QWidget* parent);
 };
 
+class ApplyButton : public QPushButton
+{
+  Q_OBJECT
+public:
+  ApplyButton(const QString& name, QWidget* parent);
+};
+
 class ToolListEntry final : public QFrame
 {
   Q_OBJECT
@@ -35,7 +42,7 @@ private:
 
   ToolListEntryHeader m_label;
 
-  QPushButton m_apply_button{ QObject::tr("Apply"), this };
+  ApplyButton m_apply_button{ QObject::tr("Apply"), this };
 
   Tool* m_tool = nullptr;
 };
