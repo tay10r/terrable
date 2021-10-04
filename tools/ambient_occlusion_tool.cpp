@@ -80,7 +80,13 @@ computeRow(Texture& ao_texture, Texture::Size y, const TerrainRTModel& rt_model,
 
 AmbientOcclusionTool::AmbientOcclusionTool(QWidget* parent)
   : Tool(parent)
-{}
+{
+  m_layout.addWidget(&m_rays_per_pixel);
+
+  m_rays_per_pixel.setMinimum(1);
+  m_rays_per_pixel.setMaximum(65536);
+  m_rays_per_pixel.setValue(1024);
+}
 
 bool
 AmbientOcclusionTool::execute(Terrain& terrain)
@@ -93,7 +99,7 @@ AmbientOcclusionTool::execute(Terrain& terrain)
 
   Texture ao_texture(terrain.columns(), terrain.rows());
 
-  const int rays_per_pixel = 1024;
+  const int rays_per_pixel = m_rays_per_pixel.value();
 
   for (Texture::Size y = 0; y < ao_texture.height(); y++) {
 

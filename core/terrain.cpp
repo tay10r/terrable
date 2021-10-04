@@ -193,7 +193,7 @@ Terrain::openFromHeightMap(const QString& path)
 void
 Terrain::defineTexture(const std::string& name, Texture&& texture)
 {
-  m_texture_map.emplace(name, std::move(texture));
+  m_texture_map[name] = std::move(texture);
 }
 
 Terrain::Vertex*
