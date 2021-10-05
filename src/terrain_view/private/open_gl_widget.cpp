@@ -19,14 +19,51 @@ uniform mat4 mvp = mat4(1.0);
 
 layout(location = 0) in vec2 position;
 
+uniform vec2 pixel_size = vec2(1.0 / 64.0, 1.0 / 64.0);
+
 uniform sampler2D elevation;
 
 out vec2 tex_coords;
+
+out vec3 surface_normal;
+
+vec2
+uv_to_ndc(vec2 uv)
+{
+  return vec2((uv.x * 2.0) - 1.0, (uv.y * 2.0) - 1.0);
+}
+
+vec3
+compute_surface_normal()
+{
+  vec2 uv0 = position;
+  vec2 uv1 = position + vec2(pixel_size.x, 0.0);
+  vec2 uv2 = position + vec2(0.0, pixel_size.y);
+
+  float y0 = texture(elevation, uv0).r;
+  float y1 = texture(elevation, uv1).r;
+  float y2 = texture(elevation, uv2).r;
+
+  vec2 ndc0 = uv_to_ndc(uv0);
+  vec2 ndc1 = uv_to_ndc(uv1);
+  vec2 ndc2 = uv_to_ndc(uv2);
+
+  vec3 p0 = vec3(ndc0.x, y0, ndc0.y);
+  vec3 p1 = vec3(ndc1.x, y1, ndc1.y);
+  vec3 p2 = vec3(ndc2.x, y2, ndc2.y);
+
+  vec3 e0 = p1 - p0;
+  vec3 e1 = p2 - p0;
+
+  return normalize(cross(e0, e1));
+}
 
 void
 main()
 {
   tex_coords = position;
+
+  surface_normal = compute_surface_normal();
 
   float ndc_x = (position.x * 2.0) - 1.0;
   float ndc_z = (position.y * 2.0) - 1.0;
@@ -44,7 +81,11 @@ const char* gFragShader = R"(
 
 in vec2 tex_coords;
 
+in vec3 surface_normal;
+
 out vec4 frag_color;
+
+uniform vec3 light_direction = vec3(-1.0, -1.0, 0.0);
 
 uniform sampler2D color;
 
@@ -55,10 +96,13 @@ main()
 {
   if (tex_coords.x == 0.3) {
     frag_color = texture(color, tex_coords);
-  } else {
+  } else if (tex_coords.y == 0.3) {
     float k = texture(elevation, tex_coords).r;
-
     frag_color = vec4(k, k, k, 1.0);
+  } else {
+    float c = clamp((dot(surface_normal, -normalize(light_direction)) + 1.0) * 0.5, 0.0, 1.0);
+
+    frag_color = vec4(c, c, c, 1.0);
 
     /* frag_color = vec4(1.0, 1.0, 1.0, 1.0); */
   }
@@ -78,6 +122,12 @@ OpenGLWidget::~OpenGLWidget()
   m_terrain->destroy();
 
   delete m_terrain;
+}
+
+void
+OpenGLWidget::setBackgroundColor(const QColor& color)
+{
+  context()->functions()->glClearColor(color.redF(), color.greenF(), color.blueF(), color.alphaF());
 }
 
 bool
@@ -121,6 +171,10 @@ OpenGLWidget::initializeGL()
 
   assert(m_elevationUniform >= 0);
 
+  m_lightDirectionUniform = m_terrainProgram.uniformLocation("light_direction");
+
+  assert(m_lightDirectionUniform >= 0);
+
   m_colorUniform = m_terrainProgram.uniformLocation("color");
 
   assert(m_colorUniform >= 0);
@@ -148,6 +202,8 @@ OpenGLWidget::paintGL()
   assert(m_terrain);
 
   QOpenGLFunctions* functions = context()->functions();
+
+  functions->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
   // Setup Color Texture
 
@@ -182,6 +238,11 @@ OpenGLWidget::paintGL()
   m_terrainProgram.bind();
 
   QMatrix4x4 mvp = getMVPMatrix();
+
+  QVector3D lightDirection = m_terrain->lightDirection();
+
+  functions->glUniform3f(
+    m_lightDirectionUniform, lightDirection.x(), lightDirection.y(), lightDirection.z());
 
   functions->glUniformMatrix4fv(m_mvpUniform, 1, GL_FALSE, mvp.constData());
 

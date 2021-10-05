@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QColor>
 #include <QMainWindow>
 #include <QMatrix4x4>
 
@@ -10,31 +11,12 @@
 #include <cassert>
 #include <cstdlib>
 
+using namespace qterrainview;
+
 namespace {
 
-struct Texture final
-{
-  std::vector<float> rgba;
-  int w = 0;
-  int h = 0;
-};
-
-Texture
-makeInvalidTexture()
-{
-  Texture texture;
-  texture.rgba.resize(4);
-  texture.w = 1;
-  texture.h = 1;
-  texture.rgba[0] = 1;
-  texture.rgba[1] = 0;
-  texture.rgba[2] = 0;
-  texture.rgba[3] = 1;
-  return texture;
-}
-
-Texture
-openTexture(const char* path);
+void
+openTerrain(QTerrainView& terrainView, const QString& terrainPath);
 
 } // namespace
 
@@ -64,18 +46,9 @@ main(int argc, char** argv)
   mainWindow.show();
 
   QObject::connect(&terrainView, &QTerrainView::contextInitialized, [&terrainView, &terrainPath]() {
-    QString heightMapPath = terrainPath + "/height.png";
+    openTerrain(terrainView, terrainPath);
 
-    const bool resizeToHeightMap = true;
-
-    terrainView.setMetersPerPixel(2);
-
-    terrainView.setVerticalRange(0.2);
-
-    [[maybe_unused]] bool success =
-      terrainView.loadElevationFromFile(heightMapPath, resizeToHeightMap);
-
-    assert(success);
+    terrainView.setBackgroundColor(QColor(16, 16, 16));
 
     QMatrix4x4 view;
 
@@ -91,12 +64,44 @@ main(int argc, char** argv)
 
 namespace {
 
-Texture
-openTexture(const char* path)
+void
+openPBRTexture(QTerrainView& terrainView, const QString& pathPrefix)
 {
-  (void)path;
+  (void)terrainView;
+  (void)pathPrefix;
+#if 0
+  QString albedoPath = pathPrefix + "albedo.png";
 
-  return makeInvalidTexture();
+  QTerrainViewTexture* texture = terrainView.createTexture();
+
+  assert(texture != nullptr);
+
+  [[maybe_unused]] bool success =
+    terrainView.loadTextureFromFile(texture, QTerrainView::Albedo, albedoPath);
+
+  assert(success);
+#endif
+}
+
+void
+openTerrain(QTerrainView& terrainView, const QString& terrainPath)
+{
+  QString heightMapPath = terrainPath + "/height.png";
+
+  terrainView.setMetersPerPixel(2);
+
+  terrainView.setVerticalRange(0.2);
+
+  terrainView.setLightDirection(-1, -1, 0);
+
+  const bool resizeToHeightMap = true;
+
+  [[maybe_unused]] bool success =
+    terrainView.loadElevationFromFile(heightMapPath, resizeToHeightMap);
+
+  assert(success);
+
+  openPBRTexture(terrainView, terrainPath + "/grass_");
 }
 
 } // namespace

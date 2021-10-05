@@ -4,6 +4,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
 
+class QColor;
+
 namespace qterrainview {
 
 class OpenGLTerrain;
@@ -18,13 +20,15 @@ public:
 
   OpenGLTerrain* terrain();
 
+  void setBackgroundColor(const QColor&);
+
   bool setViewMatrix(const QMatrix4x4& viewMatrix);
 
   void setVerticalRange(float verticalRange) { m_verticalRange = verticalRange; }
 
   void setMetersPerPixel(float metersPerPixel) { m_metersPerPixel = metersPerPixel; }
 
-  void setFieldOfView(float fieldOfView) { m_fieldOfView; }
+  void setFieldOfView(float fieldOfView) { m_fieldOfView = fieldOfView; }
 
   void setClipNear(float clipNear) { m_clipNear = clipNear; }
 
@@ -60,6 +64,8 @@ private:
   float m_metersPerPixel = 1;
 
   float m_verticalRange = 1;
+
+  int m_lightDirectionUniform = -1;
 
   int m_mvpUniform = -1;
 

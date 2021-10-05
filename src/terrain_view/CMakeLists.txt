@@ -18,6 +18,10 @@ add_library(terrable_terrain_view
   private/elevation_converter.h
   private/elevation_converter.cpp)
 
+if(NOT MSVC)
+  target_compile_options(terrable_terrain_view PRIVATE -Wall -Wextra -Werror -Wfatal-errors)
+endif(NOT MSVC)
+
 target_link_libraries(terrable_terrain_view
   PUBLIC
     Qt5::Widgets)

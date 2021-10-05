@@ -6,10 +6,11 @@
 
 #include <QImage>
 #include <QVBoxLayout>
+#include <QVector3D>
 
 #include <cassert>
 
-using namespace qterrainview;
+namespace qterrainview {
 
 class QTerrainView::Self final
 {
@@ -17,15 +18,21 @@ class QTerrainView::Self final
 
   QVBoxLayout m_layout;
 
-  OpenGLWidget m_open_gl_widget;
+  OpenGLWidget m_openGLWidget;
+
+  bool m_contextInitialized = false;
 
   Self(QTerrainView* terrain_view)
     : m_layout(terrain_view)
-    , m_open_gl_widget(terrain_view)
+    , m_openGLWidget(terrain_view)
   {
-    m_layout.addWidget(&m_open_gl_widget);
+    m_layout.addWidget(&m_openGLWidget);
 
-    QObject::connect(&m_open_gl_widget,
+    QObject::connect(&m_openGLWidget, &OpenGLWidget::contextInitialized, [this]() {
+      m_contextInitialized = true;
+    });
+
+    QObject::connect(&m_openGLWidget,
                      &OpenGLWidget::contextInitialized,
                      terrain_view,
                      &QTerrainView::contextInitialized);
@@ -43,41 +50,68 @@ QTerrainView::~QTerrainView()
 }
 
 bool
-QTerrainView::setViewMatrix(const QMatrix4x4& viewMatrix)
+QTerrainView::setLightDirection(float x, float y, float z)
 {
-  return m_self->m_open_gl_widget.setViewMatrix(viewMatrix);
-}
+  assert(m_self->m_contextInitialized);
 
-bool
-QTerrainView::setTexture(int index, TextureKind kind, const float* rgba, Size w, Size h)
-{
-  if (index > 3)
+  if (!m_self->m_contextInitialized)
     return false;
 
-  (void)index;
-  (void)kind;
-  (void)rgba;
-  (void)w;
-  (void)h;
+  m_self->m_openGLWidget.makeCurrent();
 
-  return false;
+  OpenGLTerrain* terrain = m_self->m_openGLWidget.terrain();
+
+  terrain->setLightDirection(x, y, z);
+
+  m_self->m_openGLWidget.doneCurrent();
+
+  return true;
 }
 
 bool
-QTerrainView::resizeTerrain(Size w, Size h)
+QTerrainView::setLightDirection(const QVector3D& dir)
 {
-  OpenGLTerrain* terrain = m_self->m_open_gl_widget.terrain();
+  return setLightDirection(dir.x(), dir.y(), dir.z());
+}
+
+bool
+QTerrainView::setBackgroundColor(const QColor& color)
+{
+  assert(m_self->m_contextInitialized);
+
+  if (!m_self->m_contextInitialized)
+    return false;
+
+  m_self->m_openGLWidget.makeCurrent();
+
+  m_self->m_openGLWidget.setBackgroundColor(color);
+
+  m_self->m_openGLWidget.doneCurrent();
+
+  return true;
+}
+
+bool
+QTerrainView::setViewMatrix(const QMatrix4x4& viewMatrix)
+{
+  return m_self->m_openGLWidget.setViewMatrix(viewMatrix);
+}
+
+bool
+QTerrainView::resizeTerrain(int w, int h)
+{
+  OpenGLTerrain* terrain = m_self->m_openGLWidget.terrain();
 
   assert(terrain != nullptr);
 
   if (!terrain)
     return false;
 
-  m_self->m_open_gl_widget.makeCurrent();
+  m_self->m_openGLWidget.makeCurrent();
 
   terrain->resize(w, h);
 
-  m_self->m_open_gl_widget.doneCurrent();
+  m_self->m_openGLWidget.doneCurrent();
 
   return true;
 }
@@ -85,13 +119,13 @@ QTerrainView::resizeTerrain(Size w, Size h)
 void
 QTerrainView::setVerticalRange(float verticalRange)
 {
-  m_self->m_open_gl_widget.setVerticalRange(verticalRange);
+  m_self->m_openGLWidget.setVerticalRange(verticalRange);
 }
 
 void
 QTerrainView::setMetersPerPixel(float metersPerPixel)
 {
-  m_self->m_open_gl_widget.setMetersPerPixel(metersPerPixel);
+  m_self->m_openGLWidget.setMetersPerPixel(metersPerPixel);
 }
 
 bool
@@ -121,18 +155,18 @@ QTerrainView::loadElevation(const QImage& image)
 bool
 QTerrainView::loadElevation(const float* elevation, int w, int h)
 {
-  OpenGLTerrain* terrain = m_self->m_open_gl_widget.terrain();
+  OpenGLTerrain* terrain = m_self->m_openGLWidget.terrain();
 
   assert(terrain != nullptr);
 
   if (!terrain)
     return false;
 
-  m_self->m_open_gl_widget.makeCurrent();
+  m_self->m_openGLWidget.makeCurrent();
 
   const bool success = terrain->setElevation(elevation, w, h);
 
-  m_self->m_open_gl_widget.doneCurrent();
+  m_self->m_openGLWidget.doneCurrent();
 
   return success;
 }
@@ -144,3 +178,5 @@ QTerrainView::toElevation(const QImage& image)
 
   return converter.convert();
 }
+
+} // namespace qterrainview
