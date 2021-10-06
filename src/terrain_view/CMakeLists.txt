@@ -15,8 +15,16 @@ add_library(terrable_terrain_view
   private/terrain_render_program.cpp
   private/pbr_texture.h
   private/pbr_texture.cpp
-  private/palette.h
-  private/palette.cpp
+  private/pbr_texture_buffer.h
+  private/pbr_texture_buffer.cpp
+  private/splat_map_buffer.h
+  private/splat_map_buffer.cpp
+  private/qterrainsurface.cpp
+  private/qterrainsurface_p.h
+  private/qterrainsurface_p.cpp
+  private/qterrainsurfacebuilder.cpp
+  private/qterrainsurfacebuilder_p.h
+  private/qterrainsurfacebuilder_p.cpp
   private/elevation_converter.h
   private/elevation_converter.cpp
   private/shaders/shaders.qrc)
@@ -35,7 +43,8 @@ set_target_properties(terrable_terrain_view
     AUTORCC ON)
 
 target_include_directories(terrable_terrain_view
-  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/QTerrainView")
+  PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_library(terrable::terrain_view ALIAS terrable_terrain_view)
 

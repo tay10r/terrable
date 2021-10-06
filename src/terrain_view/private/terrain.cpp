@@ -1,5 +1,7 @@
 #include "terrain.h"
 
+#include <QTerrainView/QTerrainSurface>
+
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QVector2D>
@@ -142,6 +144,12 @@ Terrain::resize(Size w, Size h)
   assert(QOpenGLContext::currentContext()->functions()->glGetError() == GL_NO_ERROR);
 
   return true;
+}
+
+void
+Terrain::setSurface(const std::shared_ptr<QTerrainSurface>& surface)
+{
+  m_surface = surface;
 }
 
 bool

@@ -5,6 +5,8 @@
 
 #include <QWidget>
 
+#include <memory>
+
 class QMatrix4x4;
 class QString;
 class QImage;
@@ -19,8 +21,8 @@ namespace qterrainview {
 void
 initResources();
 
-class QTerrainViewTexture;
-class QTerrainViewSplatMap;
+class QTerrainSurfaceBuilder;
+class QTerrainSurface;
 
 /// This widget supports rendering terrains from height maps and PBR textures.
 ///
@@ -42,41 +44,9 @@ public:
 
   bool setLightDirection(const QVector3D&);
 
-  //===============//
-  // Splat Map API //
-  //===============//
+  QTerrainSurfaceBuilder surfaceBuilder();
 
-  QTerrainViewSplatMap* createSplatMap();
-
-  void destroySplatMap(QTerrainViewSplatMap* splatMap);
-
-  bool loadSplatMap(QTerrainViewSplatMap* splatMap,
-                    const float* blendVec,
-                    int w,
-                    int h,
-                    int textureCount);
-
-  bool loadSplatMapFromFile(QTerrainViewSplatMap* splatMap, const QString& path);
-
-  //=============//
-  // Texture API //
-  //=============//
-
-  enum TextureKind
-  {
-    Albedo,
-    Bump,
-    Normal,
-    Roughness
-  };
-
-  QTerrainViewTexture* createTexture();
-
-  void destroyTexture(QTerrainViewTexture*);
-
-  bool loadTexture(QTerrainViewTexture* texture, TextureKind kind, const float* rgba, int w, int h);
-
-  bool setPixelsPerTexture(float xPixelsPerTex, float yPixelsPerTex);
+  bool setSurface(const std::shared_ptr<QTerrainSurface>& surface);
 
   //=============//
   // Terrain API //

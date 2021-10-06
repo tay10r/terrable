@@ -3,7 +3,8 @@
 #include <QMainWindow>
 #include <QMatrix4x4>
 
-#include <QTerrainView>
+#include <QTerrainView/QTerrainSurfaceBuilder>
+#include <QTerrainView/QTerrainView>
 
 #include <iostream>
 #include <vector>
@@ -67,22 +68,21 @@ main(int argc, char** argv)
 namespace {
 
 void
-openPBRTexture(QTerrainView& terrainView, const QString& pathPrefix)
+openPBRTexture(QTerrainSurfaceBuilder& surfaceBuilder, const QString& pathPrefix)
 {
-  (void)terrainView;
-  (void)pathPrefix;
-#if 0
   QString albedoPath = pathPrefix + "albedo.png";
 
-  QTerrainViewTexture* texture = terrainView.createTexture();
+  using Error = QTerrainSurfaceBuilder::Error;
 
-  assert(texture != nullptr);
+  surfaceBuilder.beginPBRTexture();
 
-  [[maybe_unused]] bool success =
-    terrainView.loadTextureFromFile(texture, QTerrainView::Albedo, albedoPath);
+  [[maybe_unused]] Error error = surfaceBuilder.loadAlbedoFromFile(pathPrefix + "albedo.png");
 
-  assert(success);
-#endif
+  assert(error == QTerrainSurfaceBuilder::NoError);
+
+  error = surfaceBuilder.finishPBRTexture();
+
+  assert(error == QTerrainSurfaceBuilder::NoError);
 }
 
 void
@@ -103,7 +103,13 @@ openTerrain(QTerrainView& terrainView, const QString& terrainPath)
 
   assert(success);
 
-  openPBRTexture(terrainView, terrainPath + "/grass_");
+  QTerrainSurfaceBuilder surfaceBuilder = terrainView.surfaceBuilder();
+
+  openPBRTexture(surfaceBuilder, terrainPath + "/grass_");
+
+  std::shared_ptr<QTerrainSurface> surface = surfaceBuilder.finishSurface();
+
+  terrainView.setSurface(surface);
 }
 
 } // namespace

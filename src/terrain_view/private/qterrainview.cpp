@@ -1,7 +1,9 @@
-#include <QTerrainView>
+#include <QTerrainView/QTerrainView>
 
 #include "elevation_converter.h"
 #include "open_gl_widget.hpp"
+#include "qterrainsurface_p.h"
+#include "qterrainsurfacebuilder_p.h"
 #include "terrain.h"
 
 #include <QApplication>
@@ -100,6 +102,25 @@ QTerrainView::setBackgroundColor(const QColor& color)
   m_self->m_openGLWidget.setBackgroundColor(color);
 
   m_self->m_openGLWidget.doneCurrent();
+
+  return true;
+}
+
+QTerrainSurfaceBuilder
+QTerrainView::surfaceBuilder()
+{
+  return QTerrainSurfaceBuilder(new QTerrainSurfaceBuilder::Self(m_self->m_openGLWidget));
+}
+
+bool
+QTerrainView::setSurface(const std::shared_ptr<QTerrainSurface>& surface)
+{
+  assert(m_self->m_contextInitialized);
+
+  if (!m_self->m_contextInitialized)
+    return false;
+
+  m_self->m_openGLWidget.terrain()->setSurface(surface);
 
   return true;
 }

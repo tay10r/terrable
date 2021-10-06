@@ -5,23 +5,19 @@
 
 namespace qterrainview {
 
+class PBRTextureBuffer;
+
 class PBRTexture final : public QObject
 {
 public:
-  PBRTexture();
-
-  bool init();
+  bool init(const PBRTextureBuffer&);
 
   void destroy();
 
 private:
-  QOpenGLTexture m_albedo;
+  QOpenGLTexture m_albedoRoughness{ QOpenGLTexture::Target2D };
 
-  QOpenGLTexture m_dispacement;
-
-  QOpenGLTexture m_normal;
-
-  QOpenGLTexture m_roughness;
+  QOpenGLTexture m_normalBump{ QOpenGLTexture::Target2D };
 };
 
 } // namespace qterrainview
