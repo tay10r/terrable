@@ -4,11 +4,12 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
 
+#include "terrain.h"
+#include "terrain_render_program.h"
+
 class QColor;
 
 namespace qterrainview {
-
-class OpenGLTerrain;
 
 class OpenGLWidget : public QOpenGLWidget
 {
@@ -18,21 +19,33 @@ public:
 
   ~OpenGLWidget();
 
-  OpenGLTerrain* terrain();
+  Terrain* terrain();
 
   void setBackgroundColor(const QColor&);
 
   bool setViewMatrix(const QMatrix4x4& viewMatrix);
 
-  void setVerticalRange(float verticalRange) { m_verticalRange = verticalRange; }
+  void setVerticalRange(float verticalRange)
+  {
+    assert(m_terrain);
 
-  void setMetersPerPixel(float metersPerPixel) { m_metersPerPixel = metersPerPixel; }
+    m_terrain->setVerticalRange(verticalRange);
+  }
+
+  void setMetersPerPixel(float metersPerPixel)
+  {
+    assert(m_terrain);
+
+    m_terrain->setMetersPerPixel(metersPerPixel);
+  }
 
   void setFieldOfView(float fieldOfView) { m_fieldOfView = fieldOfView; }
 
   void setClipNear(float clipNear) { m_clipNear = clipNear; }
 
   void setClipFar(float clipFar) { m_clipFar = clipFar; }
+
+  QMatrix4x4 projectionMatrix() const;
 
 signals:
   void contextInitialized();
@@ -44,14 +57,10 @@ protected:
 
   void paintGL() override;
 
-  QMatrix4x4 getMVPMatrix() const;
-
   static QMatrix4x4 makeDefaultViewMatrix();
 
 private:
-  OpenGLTerrain* m_terrain = nullptr;
-
-  QOpenGLShaderProgram m_terrainProgram;
+  Terrain* m_terrain = nullptr;
 
   QMatrix4x4 m_viewMatrix = makeDefaultViewMatrix();
 
@@ -61,19 +70,7 @@ private:
 
   float m_fieldOfView = 60;
 
-  float m_metersPerPixel = 1;
-
-  float m_verticalRange = 1;
-
-  int m_lightDirectionUniform = -1;
-
-  int m_mvpUniform = -1;
-
-  int m_elevationUniform = -1;
-
-  int m_colorUniform = -1;
-
-  int m_positionAttrib = -1;
+  TerrainRenderProgram m_terrainRenderProgram;
 };
 
 } // namespace qterrainview

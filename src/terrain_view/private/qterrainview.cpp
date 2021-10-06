@@ -1,16 +1,29 @@
 #include <QTerrainView>
 
 #include "elevation_converter.h"
-#include "open_gl_terrain.hpp"
 #include "open_gl_widget.hpp"
+#include "terrain.h"
 
+#include <QApplication>
 #include <QImage>
 #include <QVBoxLayout>
 #include <QVector3D>
 
 #include <cassert>
 
+inline static void
+initResources()
+{
+  Q_INIT_RESOURCE(shaders);
+}
+
 namespace qterrainview {
+
+void
+initResources()
+{
+  ::initResources();
+}
 
 class QTerrainView::Self final
 {
@@ -59,7 +72,7 @@ QTerrainView::setLightDirection(float x, float y, float z)
 
   m_self->m_openGLWidget.makeCurrent();
 
-  OpenGLTerrain* terrain = m_self->m_openGLWidget.terrain();
+  Terrain* terrain = m_self->m_openGLWidget.terrain();
 
   terrain->setLightDirection(x, y, z);
 
@@ -100,7 +113,7 @@ QTerrainView::setViewMatrix(const QMatrix4x4& viewMatrix)
 bool
 QTerrainView::resizeTerrain(int w, int h)
 {
-  OpenGLTerrain* terrain = m_self->m_openGLWidget.terrain();
+  Terrain* terrain = m_self->m_openGLWidget.terrain();
 
   assert(terrain != nullptr);
 
@@ -155,7 +168,7 @@ QTerrainView::loadElevation(const QImage& image)
 bool
 QTerrainView::loadElevation(const float* elevation, int w, int h)
 {
-  OpenGLTerrain* terrain = m_self->m_openGLWidget.terrain();
+  Terrain* terrain = m_self->m_openGLWidget.terrain();
 
   assert(terrain != nullptr);
 

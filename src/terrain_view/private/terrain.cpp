@@ -1,4 +1,4 @@
-#include "open_gl_terrain.hpp"
+#include "terrain.h"
 
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
@@ -75,12 +75,12 @@ generateTexCoords(int w, int h)
 
 } // namespace
 
-OpenGLTerrain::OpenGLTerrain(QObject* parent)
+Terrain::Terrain(QObject* parent)
   : QObject(parent)
 {}
 
 bool
-OpenGLTerrain::init()
+Terrain::init()
 {
   if (!m_vertexBuffer.create())
     return false;
@@ -104,7 +104,7 @@ OpenGLTerrain::init()
 }
 
 void
-OpenGLTerrain::destroy()
+Terrain::destroy()
 {
   if (m_vertexBuffer.isCreated())
     m_vertexBuffer.destroy();
@@ -117,7 +117,7 @@ OpenGLTerrain::destroy()
 }
 
 bool
-OpenGLTerrain::resize(Size w, Size h)
+Terrain::resize(Size w, Size h)
 {
   if ((w < 2) || (h < 2))
     return false;
@@ -145,7 +145,7 @@ OpenGLTerrain::resize(Size w, Size h)
 }
 
 bool
-OpenGLTerrain::setElevation(const float* data, Size w, Size h)
+Terrain::setElevation(const float* data, Size w, Size h)
 {
   m_elevation.bind();
 
@@ -167,7 +167,7 @@ OpenGLTerrain::setElevation(const float* data, Size w, Size h)
 }
 
 bool
-OpenGLTerrain::setColor(const float* data, Size w, Size h)
+Terrain::setColor(const float* data, Size w, Size h)
 {
   m_color.bind();
 

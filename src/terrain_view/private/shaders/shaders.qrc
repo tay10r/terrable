@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>render_terrain.vert</file>
+    <file>render_terrain.frag</file>
+</qresource>
+</RCC>

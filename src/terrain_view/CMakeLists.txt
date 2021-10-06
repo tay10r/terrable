@@ -9,14 +9,17 @@ add_library(terrable_terrain_view
   private/qterrainview.cpp
   private/open_gl_widget.hpp
   private/open_gl_widget.cpp
-  private/open_gl_terrain.hpp
-  private/open_gl_terrain.cpp
+  private/terrain.h
+  private/terrain.cpp
+  private/terrain_render_program.h
+  private/terrain_render_program.cpp
   private/pbr_texture.h
   private/pbr_texture.cpp
   private/palette.h
   private/palette.cpp
   private/elevation_converter.h
-  private/elevation_converter.cpp)
+  private/elevation_converter.cpp
+  private/shaders/shaders.qrc)
 
 if(NOT MSVC)
   target_compile_options(terrable_terrain_view PRIVATE -Wall -Wextra -Werror -Wfatal-errors)
@@ -28,7 +31,8 @@ target_link_libraries(terrable_terrain_view
 
 set_target_properties(terrable_terrain_view
   PROPERTIES
-    AUTOMOC ON)
+    AUTOMOC ON
+    AUTORCC ON)
 
 target_include_directories(terrable_terrain_view
   PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/QTerrainView")

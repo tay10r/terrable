@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QMatrix4x4>
 #include <QObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
@@ -7,19 +8,30 @@
 
 namespace qterrainview {
 
-class OpenGLTerrain final : public QObject
+class Terrain final : public QObject
 {
   Q_OBJECT
 public:
   using Size = signed long int;
 
-  OpenGLTerrain(QObject* parent);
+  Terrain(QObject* parent);
 
   bool init();
 
   void destroy();
 
   bool resize(Size w, Size h);
+
+  void setVerticalRange(float verticalRange) { m_verticalRange = verticalRange; }
+
+  void setMetersPerPixel(float metersPerPixel) { m_metersPerPixel = metersPerPixel; }
+
+  QMatrix4x4 modelMatrix() const
+  {
+    QMatrix4x4 modelMatrix;
+    modelMatrix.scale(m_metersPerPixel, m_verticalRange, m_metersPerPixel);
+    return modelMatrix;
+  }
 
   bool setColor(const float* data, Size w, Size h);
 
@@ -36,6 +48,10 @@ public:
   QOpenGLBuffer* vertexBuffer() { return &m_vertexBuffer; }
 
 private:
+  float m_metersPerPixel = 1;
+
+  float m_verticalRange = 1;
+
   QOpenGLTexture m_color{ QOpenGLTexture::Target2D };
 
   QOpenGLTexture m_elevation{ QOpenGLTexture::Target2D };

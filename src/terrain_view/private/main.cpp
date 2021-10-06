@@ -35,6 +35,8 @@ main(int argc, char** argv)
 
   QApplication app(argc, argv);
 
+  qterrainview::initResources();
+
   QMainWindow mainWindow;
 
   QTerrainView terrainView(&mainWindow);

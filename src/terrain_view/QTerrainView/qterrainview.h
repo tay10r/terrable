@@ -16,6 +16,9 @@ class QVector;
 
 namespace qterrainview {
 
+void
+initResources();
+
 class QTerrainViewTexture;
 class QTerrainViewSplatMap;
 
