@@ -4,8 +4,6 @@ uniform mat4 mvp = mat4(1.0);
 
 layout(location = 0) in vec2 position;
 
-uniform vec2 pixel_size = vec2(1.0 / 64.0, 1.0 / 64.0);
-
 uniform sampler2D elevation;
 
 out vec2 tex_coords;
@@ -21,26 +19,89 @@ uv_to_ndc(vec2 uv)
 vec3
 compute_surface_normal()
 {
-  vec2 uv0 = position;
-  vec2 uv1 = position + vec2(pixel_size.x, 0.0);
-  vec2 uv2 = position + vec2(0.0, pixel_size.y);
+  // 2 | a b c
+  // 1 | d x e
+  // 0 | f g h
+  //    ------
+  //     0 1 2
 
-  float y0 = texture(elevation, uv0).r;
-  float y1 = texture(elevation, uv1).r;
-  float y2 = texture(elevation, uv2).r;
+  vec2 elevation_texture_size = textureSize(elevation, 0);
 
-  vec2 ndc0 = uv_to_ndc(uv0);
-  vec2 ndc1 = uv_to_ndc(uv1);
-  vec2 ndc2 = uv_to_ndc(uv2);
+  if (elevation_texture_size.y == 0)
+    return vec3(0, 1, 0);
 
-  vec3 p0 = vec3(ndc0.x, y0, ndc0.y);
-  vec3 p1 = vec3(ndc1.x, y1, ndc1.y);
-  vec3 p2 = vec3(ndc2.x, y2, ndc2.y);
+  vec2 pixel_size = vec2(1.0 / elevation_texture_size.x,
+                         1.0 / elevation_texture_size.y);
 
-  vec3 e0 = p1 - p0;
-  vec3 e1 = p2 - p0;
+  vec2 uv[9];
 
-  return normalize(cross(e0, e1));
+  // a b c
+  uv[0] = position + vec2(-pixel_size.x, -pixel_size.y);
+  uv[1] = position + vec2(            0, -pixel_size.y);
+  uv[2] = position + vec2( pixel_size.x, -pixel_size.y);
+
+  // d x e
+  uv[3] = position + vec2(-pixel_size.x, 0);
+  uv[4] = position + vec2(            0, 0);
+  uv[5] = position + vec2( pixel_size.x, 0);
+
+  // f g h
+  uv[6] = position + vec2(-pixel_size.x, pixel_size.y);
+  uv[7] = position + vec2(            0, pixel_size.y);
+  uv[8] = position + vec2( pixel_size.x, pixel_size.y);
+
+  vec3 p[9];
+
+  for (int i = 0; i < 9; i++) {
+
+    float y = texture(elevation, uv[i]).r;
+
+    vec2 ndc = uv_to_ndc(uv[i]);
+
+    p[i] = vec3(ndc.x, texture(elevation, uv[i]).r, ndc.y);
+  }
+
+  vec3 center = p[4];
+
+  vec3 edges[9];
+
+  // a b c
+  edges[0] = p[0] - center;
+  edges[1] = p[1] - center;
+  edges[2] = p[2] - center;
+
+  // e
+  edges[3] = p[5] - center;
+
+  // h g f
+  edges[4] = p[8] - center;
+  edges[5] = p[7] - center;
+  edges[6] = p[6] - center;
+
+  // d
+  edges[7] = p[3] - center;
+
+  // a
+  edges[8] = edges[0];
+
+  // TODO : reject angles above a certain threshold angle.
+
+  vec3 accumulated_normal = vec3(0, 0, 0);
+
+  int accepted_normal_count = 0;
+
+  for (int i = 0; i < 8; i++) {
+
+    vec3 normal = normalize(cross(edges[i], edges[i + 1]));
+
+    accumulated_normal += normal;
+
+    accepted_normal_count++;
+  }
+
+  vec3 average_normal = normalize(accumulated_normal / accepted_normal_count);
+
+  return average_normal;
 }
 
 void
