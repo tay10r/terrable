@@ -6,6 +6,9 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 
+#include <algorithm>
+#include <limits>
+
 #include <cassert>
 
 namespace qterrainview {
@@ -16,7 +19,8 @@ std::vector<float>
 interleave(const std::vector<float>& a,
            const std::vector<float>& b,
            const std::vector<float>& c,
-           const std::vector<float>& d)
+           const std::vector<float>& d,
+           bool normalize)
 {
   // These should all be the same size. This is just in case error checking at a higher level fails.
 
@@ -25,11 +29,25 @@ interleave(const std::vector<float>& a,
 
   std::vector<float> buffer(max_size * 4);
 
+  float max = -std::numeric_limits<float>::infinity();
+
   for (size_t i = 0; i < min_size; i++) {
     buffer[(i * 4) + 0] = a[i];
     buffer[(i * 4) + 1] = b[i];
     buffer[(i * 4) + 2] = c[i];
     buffer[(i * 4) + 3] = d[i];
+
+    const float total = a[i] + b[i] + c[i] + d[i];
+
+    max = std::max(total, max);
+  }
+
+  if (normalize) {
+
+    const float weight = 1.0f / max;
+
+    for (size_t i = 0; i < buffer.size(); i++)
+      buffer[i] *= weight;
   }
 
   return buffer;
@@ -56,7 +74,9 @@ QTerrainSurface::Self::Self(QOpenGLWidget& openGLWidget,
     const std::vector<float>& c = splatMapBuffer[i + 2];
     const std::vector<float>& d = splatMapBuffer[i + 3];
 
-    std::vector<float> buffer = interleave(a, b, c, d);
+    const bool normalize = true;
+
+    std::vector<float> buffer = interleave(a, b, c, d, normalize);
 
     std::unique_ptr<QOpenGLTexture> splatTexture(new QOpenGLTexture(QOpenGLTexture::Target2D));
 

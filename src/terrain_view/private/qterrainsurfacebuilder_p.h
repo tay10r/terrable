@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QTerrainView/QTerrainSurfaceBuilder>
+#include <qterrainview/QTerrainSurfaceBuilder>
 
 #include <QVector4D>
 

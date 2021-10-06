@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QTerrainView/QTerrainSurface>
+#include <qterrainview/QTerrainSurface>
 
 #include "pbr_texture.h"
 

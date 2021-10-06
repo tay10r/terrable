@@ -1,4 +1,4 @@
-#include <QTerrainView/QTerrainView>
+#include <qterrainview/QTerrainView>
 
 #include "elevation_converter.h"
 #include "open_gl_widget.hpp"

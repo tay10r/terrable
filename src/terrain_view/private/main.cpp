@@ -3,8 +3,8 @@
 #include <QMainWindow>
 #include <QMatrix4x4>
 
-#include <QTerrainView/QTerrainSurfaceBuilder>
-#include <QTerrainView/QTerrainView>
+#include <qterrainview/QTerrainSurfaceBuilder>
+#include <qterrainview/QTerrainView>
 
 #include <iostream>
 #include <vector>
@@ -55,7 +55,7 @@ main(int argc, char** argv)
 
     QMatrix4x4 view;
 
-    view.lookAt(QVector3D(2, 2, 3), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+    view.lookAt(QVector3D(1, 1, 1), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
 
     terrainView.setViewMatrix(view);
 
@@ -80,6 +80,10 @@ openPBRTexture(QTerrainSurfaceBuilder& surfaceBuilder, const QString& pathPrefix
 
   assert(error == QTerrainSurfaceBuilder::NoError);
 
+  error = surfaceBuilder.loadSplatFromFile(pathPrefix + "splat.png");
+
+  assert(error == QTerrainSurfaceBuilder::NoError);
+
   error = surfaceBuilder.finishPBRTexture();
 
   assert(error == QTerrainSurfaceBuilder::NoError);
@@ -92,9 +96,9 @@ openTerrain(QTerrainView& terrainView, const QString& terrainPath)
 
   terrainView.setMetersPerPixel(2);
 
-  terrainView.setVerticalRange(0.2);
+  terrainView.setVerticalRange(0.3);
 
-  terrainView.setLightDirection(-1, -1, 0);
+  terrainView.setLightDirection(-0.5, -1, 0);
 
   const bool resizeToHeightMap = true;
 
@@ -106,6 +110,8 @@ openTerrain(QTerrainView& terrainView, const QString& terrainPath)
   QTerrainSurfaceBuilder surfaceBuilder = terrainView.surfaceBuilder();
 
   openPBRTexture(surfaceBuilder, terrainPath + "/grass_");
+
+  openPBRTexture(surfaceBuilder, terrainPath + "/rock_");
 
   std::shared_ptr<QTerrainSurface> surface = surfaceBuilder.finishSurface();
 

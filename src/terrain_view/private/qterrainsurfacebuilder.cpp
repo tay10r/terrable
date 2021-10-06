@@ -1,4 +1,4 @@
-#include <QTerrainView/QTerrainSurfaceBuilder>
+#include <qterrainview/QTerrainSurfaceBuilder>
 
 #include "qterrainsurfacebuilder_p.h"
 
@@ -99,6 +99,12 @@ QTerrainSurfaceBuilder::loadBump(const float* bump, int w, int h)
 }
 
 QTerrainSurfaceBuilder::Error
+QTerrainSurfaceBuilder::loadSplat(const float* splat, int w, int h)
+{
+  return m_self->loadSplatMap(splat, w, h);
+}
+
+QTerrainSurfaceBuilder::Error
 QTerrainSurfaceBuilder::loadAlbedoFromFile(const QString& path)
 {
   QImage image;
@@ -160,6 +166,22 @@ QTerrainSurfaceBuilder::loadBumpFromFile(const QString& path)
   const QVector<float> bump = imageToFloatVector(image);
 
   return loadBump(bump.constData(), w, h);
+}
+
+QTerrainSurfaceBuilder::Error
+QTerrainSurfaceBuilder::loadSplatFromFile(const QString& path)
+{
+  QImage image;
+
+  if (!image.load(path))
+    return FailedToOpen;
+
+  const int w = image.width();
+  const int h = image.height();
+
+  const QVector<float> values = imageToFloatVector(image);
+
+  return loadSplat(values.constData(), w, h);
 }
 
 auto

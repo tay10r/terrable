@@ -1,6 +1,6 @@
 #include "terrain.h"
 
-#include <QTerrainView/QTerrainSurface>
+#include <qterrainview/QTerrainSurface>
 
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>

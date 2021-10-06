@@ -5,7 +5,7 @@ project(terrable_terrain_view)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
 add_library(terrable_terrain_view
-  QTerrainView/qterrainview.h
+  qterrainview/qterrainview.h
   private/qterrainview.cpp
   private/open_gl_widget.hpp
   private/open_gl_widget.cpp

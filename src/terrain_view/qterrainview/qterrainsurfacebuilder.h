@@ -47,7 +47,7 @@ public:
 
   // From Memory
 
-  [[nodiscard]] Error loadSplat(const QVector3D* blendData, int w, int h);
+  [[nodiscard]] Error loadSplat(const float* blendData, int w, int h);
 
   [[nodiscard]] Error loadAlbedo(const QVector3D* rgb, int w, int h);
 

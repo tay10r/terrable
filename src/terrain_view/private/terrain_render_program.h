@@ -18,15 +18,25 @@ public:
 private:
   QOpenGLShaderProgram m_program;
 
-  int m_lightDirectionUniform = -1;
+  // From Vertex Shader
 
   int m_mvpUniform = -1;
 
   int m_elevationUniform = -1;
 
-  int m_albedoAndRoughnessUniform = -1;
-
   int m_positionAttrib = -1;
+
+  // From Fragment Shader
+
+  int m_lightDirectionUniform = -1;
+
+  int m_splatMapUniform = -1;
+
+  int m_textureSizesUniform = -1;
+
+  int m_albedoAndRoughnessUniform[4]{ -1, -1, -1, -1 };
+
+  int m_normalAndBumpUniform[4]{ -1, -1, -1, -1 };
 };
 
 } // namespace qterrainview

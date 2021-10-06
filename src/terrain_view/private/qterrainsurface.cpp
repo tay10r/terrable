@@ -1,4 +1,4 @@
-#include <QTerrainView/qterrainsurface.h>
+#include <qterrainview/qterrainsurface.h>
 
 #include "qterrainsurface_p.h"
 

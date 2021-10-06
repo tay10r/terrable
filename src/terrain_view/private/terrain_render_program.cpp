@@ -27,25 +27,45 @@ TerrainRenderProgram::init()
   if (!m_program.bind())
     return false;
 
-  m_mvpUniform = m_program.uniformLocation("mvp");
+  // From Vertex Shader
 
+  m_mvpUniform = m_program.uniformLocation("mvp");
   assert(m_mvpUniform >= 0);
 
   m_positionAttrib = m_program.attributeLocation("position");
-
   assert(m_positionAttrib >= 0);
 
   m_elevationUniform = m_program.uniformLocation("elevation");
-
   assert(m_elevationUniform >= 0);
 
-  m_lightDirectionUniform = m_program.uniformLocation("light_direction");
+  // From Fragment Shader
 
+  m_lightDirectionUniform = m_program.uniformLocation("light_direction");
   assert(m_lightDirectionUniform >= 0);
 
-  m_albedoAndRoughnessUniform = m_program.uniformLocation("albedo_and_roughness");
+  m_textureSizesUniform = m_program.uniformLocation("texture_sizes");
+  assert(m_textureSizesUniform >= 0);
 
-  assert(m_albedoAndRoughnessUniform >= 0);
+  m_albedoAndRoughnessUniform[0] = m_program.uniformLocation("albedo_and_roughness[0]");
+  assert(m_albedoAndRoughnessUniform[0] >= 0);
+  m_albedoAndRoughnessUniform[1] = m_program.uniformLocation("albedo_and_roughness[1]");
+  assert(m_albedoAndRoughnessUniform[1] >= 0);
+  m_albedoAndRoughnessUniform[2] = m_program.uniformLocation("albedo_and_roughness[2]");
+  assert(m_albedoAndRoughnessUniform[2] >= 0);
+  m_albedoAndRoughnessUniform[3] = m_program.uniformLocation("albedo_and_roughness[3]");
+  assert(m_albedoAndRoughnessUniform[3] >= 0);
+
+  m_normalAndBumpUniform[0] = m_program.uniformLocation("normal_and_bump[0]");
+  assert(m_normalAndBumpUniform[0] >= 0);
+  m_normalAndBumpUniform[1] = m_program.uniformLocation("normal_and_bump[1]");
+  assert(m_normalAndBumpUniform[1] >= 0);
+  m_normalAndBumpUniform[2] = m_program.uniformLocation("normal_and_bump[2]");
+  assert(m_normalAndBumpUniform[2] >= 0);
+  m_normalAndBumpUniform[3] = m_program.uniformLocation("normal_and_bump[3]");
+  assert(m_normalAndBumpUniform[3] >= 0);
+
+  m_splatMapUniform = m_program.uniformLocation("splat_map");
+  assert(m_splatMapUniform >= 0);
 
   m_program.release();
 
@@ -126,23 +146,67 @@ TerrainRenderProgram::render(Terrain& terrain, const QMatrix4x4& view, const QMa
 
   using PBRTextureSet = std::array<PBRTexture*, 4>;
 
-  auto surfaceVisitor = [this, functions, vertexCount](QOpenGLTexture& /* splatMap */,
+  auto surfaceVisitor = [this, functions, vertexCount](QOpenGLTexture& splatMap,
                                                        PBRTextureSet& textures) {
-    (void)textures;
-
-    PBRTexture* t0 = textures[0];
+    // Setup Splat Map
 
     functions->glActiveTexture(GL_TEXTURE1);
 
-    t0->albedoAndRoughness().bind();
+    splatMap.bind();
 
-    functions->glUniform1i(m_albedoAndRoughnessUniform, 1);
+    functions->glUniform1i(m_splatMapUniform, 1);
+
+    for (int i = 0; i < 4; i++) {
+
+      PBRTexture* pbr_texture = textures[i];
+
+      // Albedo + Roughness
+
+      functions->glActiveTexture(GL_TEXTURE2 + (i * 2));
+
+      pbr_texture->albedoAndRoughness().bind();
+
+      functions->glUniform1i(m_albedoAndRoughnessUniform[i], 2 + (i * 2));
+
+      // Normal + Bump
+
+      functions->glActiveTexture(GL_TEXTURE3 + (i * 2));
+
+      pbr_texture->normalAndBump().bind();
+
+      functions->glUniform1i(m_normalAndBumpUniform[i], 3 + (i * 2));
+    }
+
+    assert(functions->glGetError() == GL_NO_ERROR);
+
+    // Draw
 
     functions->glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
     assert(functions->glGetError() == GL_NO_ERROR);
 
-    t0->albedoAndRoughness().release();
+    // Cleanup PBR textures
+
+    for (int i = 3; i >= 0; i--) {
+
+      PBRTexture* pbr_texture = textures[i];
+
+      functions->glActiveTexture(GL_TEXTURE3 + (i * 2));
+
+      pbr_texture->normalAndBump().release();
+
+      functions->glActiveTexture(GL_TEXTURE2 + (i * 2));
+
+      pbr_texture->albedoAndRoughness().release();
+    }
+
+    // Cleanup Splat Map
+
+    functions->glActiveTexture(GL_TEXTURE1);
+
+    splatMap.release();
+
+    // Done
 
     functions->glActiveTexture(GL_TEXTURE0);
   };
