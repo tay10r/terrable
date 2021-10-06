@@ -6,6 +6,7 @@
 namespace qterrainview {
 
 class QTerrainSurfaceBuilder;
+class TerrainRenderProgram;
 
 class QTerrainSurface final
 {
@@ -16,6 +17,8 @@ public:
 
 private:
   friend QTerrainSurfaceBuilder;
+
+  friend TerrainRenderProgram;
 
   class Self;
 

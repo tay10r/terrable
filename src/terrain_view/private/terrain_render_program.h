@@ -24,7 +24,7 @@ private:
 
   int m_elevationUniform = -1;
 
-  int m_colorUniform = -1;
+  int m_albedoAndRoughnessUniform = -1;
 
   int m_positionAttrib = -1;
 };

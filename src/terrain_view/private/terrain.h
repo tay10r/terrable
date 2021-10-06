@@ -37,8 +37,6 @@ public:
     return modelMatrix;
   }
 
-  bool setColor(const float* data, Size w, Size h);
-
   bool setElevation(const float* data, Size w, Size h);
 
   void setLightDirection(float x, float y, float z) { m_lightDirection = QVector3D(x, y, z); }
@@ -46,8 +44,6 @@ public:
   QVector3D lightDirection() const { return m_lightDirection; }
 
   QTerrainSurface* surface() { return m_surface.get(); }
-
-  QOpenGLTexture* color() { return &m_color; }
 
   QOpenGLTexture* elevation() { return &m_elevation; }
 
@@ -57,8 +53,6 @@ private:
   float m_metersPerPixel = 1;
 
   float m_verticalRange = 1;
-
-  QOpenGLTexture m_color{ QOpenGLTexture::Target2D };
 
   QOpenGLTexture m_elevation{ QOpenGLTexture::Target2D };
 

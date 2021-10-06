@@ -48,12 +48,12 @@ QTerrainSurface::Self::visit(Visitor& visitor)
 
   for (size_t i = 0; i < iterations; i++) {
 
-    const QOpenGLTexture& splatMap = *m_splatMaps[i];
+    QOpenGLTexture& splatMap = *m_splatMaps[i];
 
-    std::array<const PBRTexture*, 4> textures{ { m_textures[(i * 4) + 0].get(),
-                                                 m_textures[(i * 4) + 1].get(),
-                                                 m_textures[(i * 4) + 2].get(),
-                                                 m_textures[(i * 4) + 3].get() } };
+    std::array<PBRTexture*, 4> textures{ { m_textures[(i * 4) + 0].get(),
+                                           m_textures[(i * 4) + 1].get(),
+                                           m_textures[(i * 4) + 2].get(),
+                                           m_textures[(i * 4) + 3].get() } };
 
     visitor(splatMap, textures);
   }

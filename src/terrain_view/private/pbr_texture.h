@@ -14,6 +14,10 @@ public:
 
   void destroy();
 
+  QOpenGLTexture& albedoAndRoughness() { return m_albedoRoughness; }
+
+  QOpenGLTexture& normapAndBump() { return m_normalBump; }
+
 private:
   QOpenGLTexture m_albedoRoughness{ QOpenGLTexture::Target2D };
 

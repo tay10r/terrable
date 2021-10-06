@@ -14,8 +14,6 @@ namespace {
 
 const float g_initialTerrainElevation[4]{ 0, 0, 0, 0 };
 
-const float g_initialTerrainColor[12]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-
 const int g_initialTerrainWidth = 2;
 
 const int g_initialTerrainHeight = 2;
@@ -90,13 +88,7 @@ Terrain::init()
   if (!m_elevation.create())
     return false;
 
-  if (!m_color.create())
-    return false;
-
   if (!resize(g_initialTerrainWidth, g_initialTerrainHeight))
-    return false;
-
-  if (!setColor(g_initialTerrainColor, g_initialTerrainWidth, g_initialTerrainHeight))
     return false;
 
   if (!setElevation(g_initialTerrainElevation, g_initialTerrainWidth, g_initialTerrainHeight))
@@ -110,9 +102,6 @@ Terrain::destroy()
 {
   if (m_vertexBuffer.isCreated())
     m_vertexBuffer.destroy();
-
-  if (m_color.isCreated())
-    m_color.destroy();
 
   if (m_elevation.isCreated())
     m_elevation.destroy();
@@ -170,20 +159,6 @@ Terrain::setElevation(const float* data, Size w, Size h)
   m_elevation.release();
 
   assert(functions->glGetError() == GL_NO_ERROR);
-
-  return true;
-}
-
-bool
-Terrain::setColor(const float* data, Size w, Size h)
-{
-  m_color.bind();
-
-  QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
-
-  functions->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_FLOAT, data);
-
-  m_color.release();
 
   return true;
 }

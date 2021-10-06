@@ -1,5 +1,7 @@
 #include "terrain_render_program.h"
 
+#include "pbr_texture.h"
+#include "qterrainsurface_p.h"
 #include "terrain.h"
 
 #include <QOpenGLContext>
@@ -41,9 +43,9 @@ TerrainRenderProgram::init()
 
   assert(m_lightDirectionUniform >= 0);
 
-  m_colorUniform = m_program.uniformLocation("color");
+  m_albedoAndRoughnessUniform = m_program.uniformLocation("albedo_and_roughness");
 
-  assert(m_colorUniform >= 0);
+  assert(m_albedoAndRoughnessUniform >= 0);
 
   m_program.release();
 
@@ -57,31 +59,35 @@ TerrainRenderProgram::destroy()
 void
 TerrainRenderProgram::render(Terrain& terrain, const QMatrix4x4& view, const QMatrix4x4& proj)
 {
-  QOpenGLTexture* color = terrain.color();
+  QTerrainSurface* surface = terrain.surface();
+
+  if (!surface)
+    return;
 
   QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
 
-  assert(functions->glGetError() == GL_NO_ERROR);
+  // There will be the following active textures:
+  //
+  //  - 1. elevation
+  //  - 2. splat map
+  //  - 3. pbr texture # 0 albedo and roughness
+  //  - 4. pbr texture # 0 normal and bump
+  //  - 5. pbr texture # 1 albedo and roughness
+  //  - 6. pbr texture # 1 normal and bump
+  //  - 7. pbr texture # 2 albedo and roughness
+  //  - 8. pbr texture # 2 normal and bump
+  //  - 9. pbr texture # 3 albedo and roughness
+  //  - 10. pbr texture # 3 normal and bump
 
-  // Setup Color Texture
+  functions->glActiveTexture(GL_TEXTURE0); // <- elevation
 
-  functions->glActiveTexture(GL_TEXTURE0);
-
-  assert(functions->glGetError() == GL_NO_ERROR);
-
-  color->bind();
-
-  assert(functions->glGetError() == GL_NO_ERROR);
-
-  // Setup Elevation Texture
+  // Bind elevation texture
 
   QOpenGLTexture* elevation = terrain.elevation();
 
-  functions->glActiveTexture(GL_TEXTURE1);
-
   elevation->bind();
 
-  // Setup Vertex Buffer
+  // Bind Vertex Buffer
 
   QOpenGLBuffer* vertexBuffer = terrain.vertexBuffer();
 
@@ -91,18 +97,24 @@ TerrainRenderProgram::render(Terrain& terrain, const QMatrix4x4& view, const QMa
 
   m_program.bind();
 
-  QMatrix4x4 mvp = proj * view * terrain.modelMatrix();
+  // Setup Program - Light Direction
 
   QVector3D lightDirection = terrain.lightDirection();
 
   functions->glUniform3f(
     m_lightDirectionUniform, lightDirection.x(), lightDirection.y(), lightDirection.z());
 
+  // Setup Program - MVP Matrix
+
+  QMatrix4x4 mvp = proj * view * terrain.modelMatrix();
+
   functions->glUniformMatrix4fv(m_mvpUniform, 1, GL_FALSE, mvp.constData());
 
-  functions->glUniform1i(m_colorUniform, 0);
+  // Setup Program - Textures
 
-  functions->glUniform1i(m_elevationUniform, 1);
+  functions->glUniform1i(m_elevationUniform, 0);
+
+  // Setup Program - Vertex Attributes
 
   const int vertexCount = vertexBuffer->size() / (sizeof(float) * 2);
 
@@ -110,9 +122,32 @@ TerrainRenderProgram::render(Terrain& terrain, const QMatrix4x4& view, const QMa
 
   functions->glVertexAttribPointer(m_positionAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-  functions->glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+  // Draw Operations
 
-  assert(functions->glGetError() == GL_NO_ERROR);
+  using PBRTextureSet = std::array<PBRTexture*, 4>;
+
+  auto surfaceVisitor = [this, functions, vertexCount](QOpenGLTexture& /* splatMap */,
+                                                       PBRTextureSet& textures) {
+    (void)textures;
+
+    PBRTexture* t0 = textures[0];
+
+    functions->glActiveTexture(GL_TEXTURE1);
+
+    t0->albedoAndRoughness().bind();
+
+    functions->glUniform1i(m_albedoAndRoughnessUniform, 1);
+
+    functions->glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+
+    assert(functions->glGetError() == GL_NO_ERROR);
+
+    t0->albedoAndRoughness().release();
+
+    functions->glActiveTexture(GL_TEXTURE0);
+  };
+
+  surface->m_self->visit(surfaceVisitor);
 
   // Cleanup
 
@@ -123,8 +158,6 @@ TerrainRenderProgram::render(Terrain& terrain, const QMatrix4x4& view, const QMa
   vertexBuffer->release();
 
   elevation->release();
-
-  color->release();
 }
 
 } // namespace qterrainview
