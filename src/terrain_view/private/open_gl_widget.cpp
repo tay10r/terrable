@@ -50,6 +50,8 @@ OpenGLWidget::initializeGL()
 
   functions->glEnable(GL_DEPTH_TEST);
 
+  functions->glEnable(GL_MULTISAMPLE);
+
   m_terrainRenderProgram.init();
 
   m_terrain = new Terrain(this);

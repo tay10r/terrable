@@ -1,14 +1,20 @@
 #version 330 core
 
+uniform mat4 model = mat4(1.0);
+
 uniform mat4 mvp = mat4(1.0);
 
 layout(location = 0) in vec2 position;
 
 uniform sampler2D elevation;
 
+uniform vec3 camera_position = vec3(0.0, 0.0, 0.0);
+
+uniform vec3 light_direction = normalize(vec3(-1.0, -1.0, 0.0));
+
 out vec2 tex_coords;
 
-out vec3 surface_normal;
+out vec3 ts_light_direction;
 
 vec2
 uv_to_ndc(vec2 uv)
@@ -16,8 +22,8 @@ uv_to_ndc(vec2 uv)
   return vec2((uv.x * 2.0) - 1.0, (uv.y * 2.0) - 1.0);
 }
 
-vec3
-compute_surface_normal()
+mat3
+compute_world_to_tangent_transform()
 {
   // 2 | a b c
   // 1 | d x e
@@ -26,9 +32,6 @@ compute_surface_normal()
   //     0 1 2
 
   vec2 elevation_texture_size = textureSize(elevation, 0);
-
-  if (elevation_texture_size.y == 0)
-    return vec3(0, 1, 0);
 
   vec2 pixel_size = vec2(1.0 / elevation_texture_size.x,
                          1.0 / elevation_texture_size.y);
@@ -86,22 +89,46 @@ compute_surface_normal()
 
   // TODO : reject angles above a certain threshold angle.
 
-  vec3 accumulated_normal = vec3(0, 0, 0);
-
   int accepted_normal_count = 0;
+
+  int accepted_bitangent_count = 0;
+
+  vec3 normal_sum = vec3(0, 0, 0);
+
+  vec3 bitangent_sum = vec3(0, 0, 0);
 
   for (int i = 0; i < 8; i++) {
 
     vec3 normal = normalize(cross(edges[i], edges[i + 1]));
 
-    accumulated_normal += normal;
+    if (i == 1) {
+      bitangent_sum += normalize(edges[i]);
+      accepted_bitangent_count++;
+    } else if (i == 5) {
+      bitangent_sum += normalize(-edges[i]);
+      accepted_bitangent_count++;
+    }
+
+    normal_sum += normal;
 
     accepted_normal_count++;
   }
 
-  vec3 average_normal = normalize(accumulated_normal / accepted_normal_count);
+  vec3 normal = normalize(normal_sum / accepted_normal_count);
 
-  return average_normal;
+  vec3 bitangent = normalize(bitangent_sum / accepted_bitangent_count);
+
+  vec3 tangent = normalize(cross(normal, bitangent));
+
+  // To world space
+
+  normal = normalize((model * vec4(normal, 0.0)).xyz);
+
+  bitangent = normalize((model * vec4(bitangent, 0.0)).xyz);
+
+  tangent = normalize((model * vec4(tangent, 0.0)).xyz);
+
+  return transpose(mat3(tangent, bitangent, normal));
 }
 
 void
@@ -109,14 +136,17 @@ main()
 {
   tex_coords = position;
 
-  surface_normal = compute_surface_normal();
+  mat3 world_to_tangent = compute_world_to_tangent_transform();
 
   float ndc_x = (position.x * 2.0) - 1.0;
   float ndc_z = (position.y * 2.0) - 1.0;
-
   float ndc_y = texture(elevation, position).r;
+  vec4 p = vec4(ndc_x, ndc_y, ndc_z, 1.0);
 
-  vec3 p = vec3(ndc_x, ndc_y, ndc_z);
+  if (camera_position.x == 0.4242424)
+    p.x += 0.0001;
 
-  gl_Position = mvp * vec4(p, 1.0);
+  ts_light_direction = world_to_tangent * normalize(light_direction);
+
+  gl_Position = mvp * p;
 }

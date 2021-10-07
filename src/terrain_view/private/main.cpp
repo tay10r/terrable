@@ -2,6 +2,7 @@
 #include <QColor>
 #include <QMainWindow>
 #include <QMatrix4x4>
+#include <QSurfaceFormat>
 
 #include <qterrainview/QTerrainSurfaceBuilder>
 #include <qterrainview/QTerrainView>
@@ -24,6 +25,10 @@ openTerrain(QTerrainView& terrainView, const QString& terrainPath);
 int
 main(int argc, char** argv)
 {
+  QSurfaceFormat surfaceFormat = QSurfaceFormat::defaultFormat();
+  surfaceFormat.setSamples(4);
+  QSurfaceFormat::setDefaultFormat(surfaceFormat);
+
   QString terrainPath;
 
   if (const char* envPath = std::getenv("QTerrainView_TestTerrainPath"))
@@ -55,7 +60,8 @@ main(int argc, char** argv)
 
     QMatrix4x4 view;
 
-    view.lookAt(QVector3D(1, 1, 1), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+    // view.lookAt(QVector3D(0.2, 0.4, 0.3), QVector3D(0.1, 0, 0), QVector3D(0, 1, 0));
+    view.lookAt(QVector3D(1, 1, 2), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
 
     terrainView.setViewMatrix(view);
 
@@ -77,6 +83,10 @@ openPBRTexture(QTerrainSurfaceBuilder& surfaceBuilder, const QString& pathPrefix
   surfaceBuilder.beginPBRTexture();
 
   [[maybe_unused]] Error error = surfaceBuilder.loadAlbedoFromFile(pathPrefix + "albedo.png");
+
+  assert(error == QTerrainSurfaceBuilder::NoError);
+
+  error = surfaceBuilder.loadNormalFromFile(pathPrefix + "normal.png");
 
   assert(error == QTerrainSurfaceBuilder::NoError);
 

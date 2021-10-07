@@ -4,6 +4,16 @@ project(terrable_terrain_view)
 
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
+find_program(GLSLANG_VALIDATOR glslangValidator)
+
+if(GLSLANG_VALIDATOR)
+  add_custom_target(qterrainview_shader_validation ALL
+    COMMAND ${GLSLANG_VALIDATOR} "render_terrain.vert"
+    COMMAND ${GLSLANG_VALIDATOR} "render_terrain.frag"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/private/shaders"
+    COMMENT "Validating shaders.")
+endif(GLSLANG_VALIDATOR)
+
 add_library(terrable_terrain_view
   qterrainview/qterrainview.h
   private/qterrainview.cpp

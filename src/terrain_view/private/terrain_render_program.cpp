@@ -29,8 +29,14 @@ TerrainRenderProgram::init()
 
   // From Vertex Shader
 
+  m_modelUniform = m_program.uniformLocation("model");
+  assert(m_modelUniform >= 0);
+
   m_mvpUniform = m_program.uniformLocation("mvp");
   assert(m_mvpUniform >= 0);
+
+  m_cameraPositionUniform = m_program.uniformLocation("camera_position");
+  assert(m_cameraPositionUniform >= 0);
 
   m_positionAttrib = m_program.attributeLocation("position");
   assert(m_positionAttrib >= 0);
@@ -124,11 +130,22 @@ TerrainRenderProgram::render(Terrain& terrain, const QMatrix4x4& view, const QMa
   functions->glUniform3f(
     m_lightDirectionUniform, lightDirection.x(), lightDirection.y(), lightDirection.z());
 
-  // Setup Program - MVP Matrix
+  // Setup Program - Model + MVP Matrix
 
-  QMatrix4x4 mvp = proj * view * terrain.modelMatrix();
+  const QMatrix4x4 modelMatrix = terrain.modelMatrix();
+
+  const QMatrix4x4 mvp = proj * view * modelMatrix;
+
+  functions->glUniformMatrix4fv(m_modelUniform, 1, GL_FALSE, modelMatrix.constData());
 
   functions->glUniformMatrix4fv(m_mvpUniform, 1, GL_FALSE, mvp.constData());
+
+  // Setup Camera Position
+
+  QVector4D cameraPosition = view.column(3);
+
+  functions->glUniform3f(
+    m_cameraPositionUniform, cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
   // Setup Program - Textures
 

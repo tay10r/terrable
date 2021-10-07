@@ -20,7 +20,11 @@ private:
 
   // From Vertex Shader
 
+  int m_modelUniform = -1;
+
   int m_mvpUniform = -1;
+
+  int m_cameraPositionUniform = -1;
 
   int m_elevationUniform = -1;
 
